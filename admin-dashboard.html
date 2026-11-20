@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard | MessHunt</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="navbar">
+    <a href="index.html" class="brand"><span class="brand-name">Mess<span>Hunt</span></span></a>
+    <nav class="desktop-nav"><a href="index.html">Home</a></nav>
+    <div class="nav-actions" id="navAuthArea"></div>
+  </header>
+
+  <main class="page-wrap">
+    <div class="page-header">
+      <div>
+        <div class="eyebrow">ADMIN PORTAL</div>
+        <h1>Admin Dashboard</h1>
+        <p>Monitor platform activity and manage users, listings, reports and reviews.</p>
+      </div>
+      <button class="btn btn-light" id="refreshAll">Refresh All</button>
+    </div>
+
+    <div id="adminAlert"></div>
+
+    <section class="grid-4" id="adminStats">
+      <div class="stat-card"><div class="label">Students</div><div class="value" id="aStudents">-</div></div>
+      <div class="stat-card"><div class="label">Owners</div><div class="value" id="aOwners">-</div></div>
+      <div class="stat-card"><div class="label">Listings (Pending/Approved)</div><div class="value" id="aListings">-</div></div>
+      <div class="stat-card"><div class="label">Open Reports</div><div class="value" id="aReports">-</div></div>
+    </section>
+
+    <section class="panel" style="margin-top:16px;">
+      <div class="panel-header"><h2>Users</h2>
+        <div class="form-actions" style="margin:0;">
+          <select id="userRoleFilter"><option value="">All roles</option><option value="student">Students</option><option value="owner">Owners</option><option value="admin">Admins</option></select>
+          <input id="userSearch" placeholder="Search name/email/phone" style="min-width:220px;">
+          <button class="btn btn-light" id="loadUsersBtn">Load</button>
+        </div>
+      </div>
+      <div class="table-wrap"><table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Phone</th><th>Status</th><th>Owner Verified</th><th>Actions</th></tr></thead><tbody id="usersTbody"><tr><td colspan="7" class="muted">Load users...</td></tr></tbody></table></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-header"><h2>Listings</h2>
+        <div class="form-actions" style="margin:0;">
+          <select id="listingStatusFilter"><option value="">All statuses</option><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option><option value="suspended">Suspended</option></select>
+          <input id="listingSearch" placeholder="Search listing..." style="min-width:220px;">
+          <button class="btn btn-light" id="loadListingsBtn">Load</button>
+        </div>
+      </div>
+      <div id="adminListings" class="list"><div class="empty-state">Load listings...</div></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-header"><h2>Reports</h2>
+        <div class="form-actions" style="margin:0;">
+          <select id="reportStatusFilter"><option value="">All</option><option value="open">Open</option><option value="reviewed">Reviewed</option><option value="resolved">Resolved</option><option value="dismissed">Dismissed</option></select>
+          <button class="btn btn-light" id="loadReportsBtn">Load</button>
+        </div>
+      </div>
+      <div id="adminReports" class="list"><div class="empty-state">Load reports...</div></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-header"><h2>Reviews Moderation</h2><button class="btn btn-light" id="loadReviewsBtn">Load Reviews</button></div>
+      <div id="adminReviews" class="list"><div class="empty-state">Load reviews...</div></div>
+    </section>
+  </main>
+
+  <script src="js/api.js"></script>
+  <script src="js/common.js"></script>
+  <script>
+    (function(){
+      function alertBox(msg,type='error'){ document.getElementById('adminAlert').innerHTML = msg ? `<div class="alert ${type}">${MHUI.escapeHtml(msg)}</div>` : ''; }
+      function badge(status){
+        const map={approved:'success',pending:'warn',rejected:'danger',suspended:'danger',open:'warn',resolved:'success',dismissed:'gray',reviewed:'gray',active:'success',inactive:'danger'};
+        return `<span class="badge ${map[status]||'gray'}">${MHUI.escapeHtml(status)}</span>`;
+      }
+
+      async function loadStats(){
+        const res = await MHApi.request('/api/admin/dashboard');
+        const d = res.data || {};
+        document.getElementById('aStudents').textContent = d.users?.totalStudents ?? 0;
+        document.getElementById('aOwners').textContent = d.users?.totalOwners ?? 0;
+        document.getElementById('aListings').textContent = `${d.listings?.pending ?? 0} / ${d.listings?.approved ?? 0}`;
+        document.getElementById('aReports').textContent = `${d.reports?.open ?? 0} open (${d.reports?.total ?? 0} total)`;
+      }
+
+      async function loadUsers(){
+        const role = document.getElementById('userRoleFilter').value;
+        const search = document.getElementById('userSearch').value.trim();
+        const qs = new URLSearchParams(); if(role) qs.set('role', role); if(search) qs.set('search', search);
+        const res = await MHApi.request(`/api/admin/users?${qs.toString()}`);
+        const users = res.data || [];
+        const tb = document.getElementById('usersTbody');
+        if(!users.length){ tb.innerHTML = '<tr><td colspan="7" class="muted">No users found.</td></tr>'; return; }
+        tb.innerHTML = users.map(u => `
+          <tr>
+            <td>${MHUI.escapeHtml(u.name||'')}</td>
+            <td>${MHUI.escapeHtml(u.email||'')}</td>
+            <td>${badge(u.role||'')}</td>
+            <td>${MHUI.escapeHtml(u.phone||'-')}</td>
+            <td>${u.isActive===false ? badge('inactive') : badge('active')}</td>
+            <td>${u.role==='owner' ? (u.ownerVerified ? badge('approved') : badge('pending')) : '-'}</td>
+            <td>
+              <div class="form-actions" style="margin:0;">
+                ${u.role!=='admin' ? `<button class="btn btn-light" data-user-toggle="${u._id}" data-active="${u.isActive===false?'true':'false'}">${u.isActive===false?'Activate':'Deactivate'}</button>`:''}
+                ${u.role==='owner' ? `<button class="btn btn-primary" data-owner-verify="${u._id}" data-verify="${u.ownerVerified?'false':'true'}">${u.ownerVerified?'Unverify':'Verify'}</button>`:''}
+              </div>
+            </td>
+          </tr>`).join('');
+        tb.querySelectorAll('[data-user-toggle]').forEach(btn=>btn.addEventListener('click', async()=>{
+          try{ await MHApi.request(`/api/admin/users/${encodeURIComponent(btn.getAttribute('data-user-toggle'))}`, { method:'PATCH', body: JSON.stringify({ isActive: btn.getAttribute('data-active')==='true' }) }); await loadUsers(); MHUI.showToast('User updated','success'); }
+          catch(e){ MHUI.showToast(e.message||'Failed','error'); }
+        }));
+        tb.querySelectorAll('[data-owner-verify]').forEach(btn=>btn.addEventListener('click', async()=>{
+          try{ await MHApi.request(`/api/admin/users/${encodeURIComponent(btn.getAttribute('data-owner-verify'))}`, { method:'PATCH', body: JSON.stringify({ ownerVerified: btn.getAttribute('data-verify')==='true' }) }); await loadUsers(); MHUI.showToast('Owner verification updated','success'); }
+          catch(e){ MHUI.showToast(e.message||'Failed','error'); }
+        }));
+      }
+
+      async function loadListings(){
+        const status = document.getElementById('listingStatusFilter').value;
+        const search = document.getElementById('listingSearch').value.trim();
+        const qs = new URLSearchParams(); if(status) qs.set('status', status); if(search) qs.set('search', search);
+        const res = await MHApi.request(`/api/admin/messes?${qs.toString()}`);
+        const items = res.data || [];
+        const el = document.getElementById('adminListings');
+        if(!items.length){ el.innerHTML='<div class="empty-state">No listings found.</div>'; return; }
+        el.innerHTML = items.map(m => `
+          <div class="list-item">
+            <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;"><h3 style="margin:0;">${MHUI.escapeHtml(m.name)}</h3><div>${badge(m.approvalStatus)} ${badge(m.availabilityStatus)}</div></div>
+            <div class="muted">Owner: ${MHUI.escapeHtml(m.owner?.name||'N/A')} (${MHUI.escapeHtml(m.owner?.email||'')}) • ₹${Number(m.price||0)} • ${MHUI.escapeHtml([m.area,m.city].filter(Boolean).join(', '))}</div>
+            ${m.rejectionReason ? `<div class="small-note" style="margin-top:6px;"><strong>Reason:</strong> ${MHUI.escapeHtml(m.rejectionReason)}</div>`:''}
+            <div class="form-actions">
+              <a class="btn btn-light" href="details.html?id=${encodeURIComponent(m._id)}">View</a>
+              <button class="btn btn-primary" data-approve="${m._id}">Approve</button>
+              <button class="btn btn-warning" data-reject="${m._id}">Reject</button>
+              <button class="btn btn-danger" data-suspend="${m._id}">Suspend</button>
+            </div>
+          </div>`).join('');
+        async function setApproval(id, status){
+          let reason = '';
+          if(status==='rejected' || status==='suspended') reason = prompt('Reason (optional but recommended):','') || '';
+          try{ await MHApi.request(`/api/admin/messes/${encodeURIComponent(id)}/approval`, { method:'PATCH', body: JSON.stringify({ approvalStatus: status, rejectionReason: reason }) }); MHUI.showToast('Listing updated','success'); await Promise.all([loadStats(), loadListings()]); }
+          catch(e){ MHUI.showToast(e.message||'Failed','error'); }
+        }
+        el.querySelectorAll('[data-approve]').forEach(b=>b.addEventListener('click',()=>setApproval(b.getAttribute('data-approve'),'approved')));
+        el.querySelectorAll('[data-reject]').forEach(b=>b.addEventListener('click',()=>setApproval(b.getAttribute('data-reject'),'rejected')));
+        el.querySelectorAll('[data-suspend]').forEach(b=>b.addEventListener('click',()=>setApproval(b.getAttribute('data-suspend'),'suspended')));
+      }
+
+      async function loadReports(){
+        const status = document.getElementById('reportStatusFilter').value;
+        const qs = new URLSearchParams(); if(status) qs.set('status', status);
+        const res = await MHApi.request(`/api/admin/reports?${qs.toString()}`);
+        const items = res.data || [];
+        const el = document.getElementById('adminReports');
+        if(!items.length){ el.innerHTML='<div class="empty-state">No reports found.</div>'; return; }
+        el.innerHTML = items.map(r => `
+          <div class="list-item">
+            <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;"><h3 style="margin:0;">${MHUI.escapeHtml(r.targetType.toUpperCase())} Report</h3>${badge(r.status)}</div>
+            <div class="muted">Reporter: ${MHUI.escapeHtml(r.reporter?.name||'N/A')} (${MHUI.escapeHtml(r.reporter?.email||'')}) • Target ID: ${MHUI.escapeHtml(r.targetId)}</div>
+            <div style="margin-top:6px;"><strong>Reason:</strong> ${MHUI.escapeHtml(r.reason||'')}</div>
+            ${r.details?`<div><strong>Details:</strong> ${MHUI.escapeHtml(r.details)}</div>`:''}
+            ${r.actionTaken?`<div><strong>Action:</strong> ${MHUI.escapeHtml(r.actionTaken)}</div>`:''}
+            <div class="form-actions">
+              <button class="btn btn-light" data-report-update="${r._id}" data-status="reviewed">Mark Reviewed</button>
+              <button class="btn btn-primary" data-report-update="${r._id}" data-status="resolved">Resolve</button>
+              <button class="btn btn-light" data-report-update="${r._id}" data-status="dismissed">Dismiss</button>
+              ${r.targetType==='review' ? `<button class="btn btn-warning" data-hide-review-report="${r._id}">Hide Reported Review</button><button class="btn btn-danger" data-delete-review-report="${r._id}">Delete Reported Review</button>`:''}
+            </div>
+          </div>`).join('');
+        el.querySelectorAll('[data-report-update]').forEach(btn=>btn.addEventListener('click', async()=>{
+          const note = prompt('Admin note (optional):','') || '';
+          try{ await MHApi.request(`/api/admin/reports/${encodeURIComponent(btn.getAttribute('data-report-update'))}`, { method:'PATCH', body: JSON.stringify({ status: btn.getAttribute('data-status'), adminNote: note }) }); MHUI.showToast('Report updated','success'); await Promise.all([loadStats(), loadReports()]); }
+          catch(e){ MHUI.showToast(e.message||'Failed','error'); }
+        }));
+        el.querySelectorAll('[data-hide-review-report]').forEach(btn=>btn.addEventListener('click', async()=>{
+          try{ await MHApi.request(`/api/admin/reports/${encodeURIComponent(btn.getAttribute('data-hide-review-report'))}`, { method:'PATCH', body: JSON.stringify({ status:'resolved', hideReview:true, adminNote:'Review hidden by admin' }) }); MHUI.showToast('Reported review hidden','success'); await Promise.all([loadStats(), loadReports(), loadReviews()]); }
+          catch(e){ MHUI.showToast(e.message||'Failed','error'); }
+        }));
+        el.querySelectorAll('[data-delete-review-report]').forEach(btn=>btn.addEventListener('click', async()=>{
+          if(!confirm('Delete the reported review?')) return;
+          try{ await MHApi.request(`/api/admin/reports/${encodeURIComponent(btn.getAttribute('data-delete-review-report'))}`, { method:'PATCH', body: JSON.stringify({ status:'resolved', deleteReview:true, adminNote:'Review deleted by admin' }) }); MHUI.showToast('Reported review deleted','success'); await Promise.all([loadStats(), loadReports(), loadReviews()]); }
+          catch(e){ MHUI.showToast(e.message||'Failed','error'); }
+        }));
+      }
+
+      async function loadReviews(){
+        const res = await MHApi.request('/api/admin/reviews');
+        const items = res.data || [];
+        const el = document.getElementById('adminReviews');
+        if(!items.length){ el.innerHTML='<div class="empty-state">No reviews found.</div>'; return; }
+        el.innerHTML = items.map(r => `
+          <div class="list-item">
+            <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;"><h3 style="margin:0;">${MHUI.escapeHtml(r.mess?.name||'Mess')}</h3><div>${r.isHidden ? badge('suspended') : badge('approved')}</div></div>
+            <div class="muted">${MHUI.escapeHtml(r.user?.name||'User')} (${MHUI.escapeHtml(r.user?.email||'')}) • ${'★'.repeat(r.rating||0)}${'☆'.repeat(5-(r.rating||0))}</div>
+            <p style="margin-top:6px;">${MHUI.escapeHtml(r.comment||'')}</p>
+            <div class="form-actions">
+              <button class="btn btn-light" data-mod-review="${r._id}" data-hidden="${r.isHidden?'false':'true'}">${r.isHidden?'Unhide':'Hide'}</button>
+              <button class="btn btn-danger" data-del-review="${r._id}">Delete</button>
+            </div>
+          </div>`).join('');
+        el.querySelectorAll('[data-mod-review]').forEach(btn=>btn.addEventListener('click', async()=>{
+          try{ await MHApi.request(`/api/admin/reviews/${encodeURIComponent(btn.getAttribute('data-mod-review'))}/moderate`, { method:'PATCH', body: JSON.stringify({ isHidden: btn.getAttribute('data-hidden')==='true' }) }); MHUI.showToast('Review updated','success'); await Promise.all([loadStats(), loadReviews()]); }
+          catch(e){ MHUI.showToast(e.message||'Failed','error'); }
+        }));
+        el.querySelectorAll('[data-del-review]').forEach(btn=>btn.addEventListener('click', async()=>{
+          if(!confirm('Delete this review?')) return;
+          try{ await MHApi.request(`/api/reviews/${encodeURIComponent(btn.getAttribute('data-del-review'))}`, { method:'DELETE' }); MHUI.showToast('Review deleted','success'); await Promise.all([loadStats(), loadReviews()]); }
+          catch(e){ MHUI.showToast(e.message||'Failed','error'); }
+        }));
+      }
+
+      document.addEventListener('DOMContentLoaded', async ()=>{
+        const user = MHUI.requireRole(['admin']); if(!user) return;
+        try{ await loadStats(); } catch(e){ alertBox(e.message||'Failed to load admin dashboard.'); }
+        document.getElementById('loadUsersBtn').addEventListener('click', ()=>loadUsers().catch(e=>MHUI.showToast(e.message,'error')));
+        document.getElementById('loadListingsBtn').addEventListener('click', ()=>loadListings().catch(e=>MHUI.showToast(e.message,'error')));
+        document.getElementById('loadReportsBtn').addEventListener('click', ()=>loadReports().catch(e=>MHUI.showToast(e.message,'error')));
+        document.getElementById('loadReviewsBtn').addEventListener('click', ()=>loadReviews().catch(e=>MHUI.showToast(e.message,'error')));
+        document.getElementById('refreshAll').addEventListener('click', async()=>{
+          try{ await Promise.all([loadStats(), loadUsers(), loadListings(), loadReports(), loadReviews()]); MHUI.showToast('Refreshed','success'); }
+          catch(e){ MHUI.showToast(e.message||'Refresh failed','error'); }
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

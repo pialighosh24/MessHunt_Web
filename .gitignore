@@ -1,0 +1,21 @@
+node_modules/
+.env
+# Environment files and secrets
+.env.*
+!.env.example
+!.env.template
+
+# Dependencies
+**/node_modules/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Local operating system files
+.DS_Store
+Thumbs.db
+
+# Private keys
+*.pem
+*.key

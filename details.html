@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mess Details | MessHunt</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="details.css" />
+</head>
+<body>
+  <header class="navbar">
+    <a href="index.html" class="brand"><span class="brand-name">Mess<span>Hunt</span></span></a>
+    <nav class="desktop-nav">
+      <a href="index.html#explore">Explore</a>
+    </nav>
+    <div class="nav-actions" id="navAuthArea"></div>
+  </header>
+
+  <main class="details-layout">
+    <div id="pageAlert"></div>
+    <section class="panel" id="messHeaderPanel">
+      <div class="loading-state">Loading mess details...</div>
+    </section>
+
+    <section class="panel" id="galleryPanel" style="display:none;">
+      <div class="panel-header"><h2>Photos</h2></div>
+      <img id="mainGalleryImage" class="gallery-main" src="images/logo.png" alt="Mess image" onerror="this.src='images/logo.png'">
+      <div id="thumbRow" class="thumb-row"></div>
+    </section>
+
+    <section class="grid-2">
+      <div class="panel" id="infoPanel" style="display:none;"></div>
+      <div class="panel" id="contactPanel" style="display:none;"></div>
+    </section>
+
+    <section class="panel" id="locationPanel" style="display:none;"></section>
+
+    <section class="panel" id="reviewsPanel" style="display:none;">
+      <div class="panel-header">
+        <h2>Reviews & Ratings</h2>
+        <div id="ratingSummary" class="muted"></div>
+      </div>
+      <div id="reviewFormWrap"></div>
+      <div id="reviewsList" class="list" style="margin-top:12px;"></div>
+    </section>
+
+    <section class="panel" id="bookingPanel" style="display:none;">
+      <div class="panel-header"><h2>Booking Request</h2></div>
+      <div id="bookingWrap"></div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-bottom">© 2026 MessHunt • BCA Final Year Project</div>
+  </footer>
+
+  <script src="js/api.js"></script>
+  <script src="js/common.js"></script>
+  <script src="details.js"></script>
+</body>
+</html>

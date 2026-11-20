@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Dashboard | MessHunt</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="navbar">
+    <a href="index.html" class="brand"><span class="brand-name">Mess<span>Hunt</span></span></a>
+    <nav class="desktop-nav"><a href="index.html">Home</a><a href="index.html#explore">Explore</a></nav>
+    <div class="nav-actions" id="navAuthArea"></div>
+  </header>
+
+  <main class="page-wrap">
+    <div class="page-header">
+      <div>
+        <div class="eyebrow">STUDENT PORTAL</div>
+        <h1>My Dashboard</h1>
+        <p>Manage your profile, favourites and booking requests.</p>
+      </div>
+    </div>
+
+    <div id="dashAlert"></div>
+
+    <section class="grid-2">
+      <div class="panel">
+        <div class="panel-header"><h2>Profile</h2></div>
+        <form id="profileForm">
+          <div class="form-grid">
+            <div><label>Name</label><input id="pName" required></div>
+            <div><label>Email</label><input id="pEmail" disabled></div>
+            <div><label>Phone</label><input id="pPhone"></div>
+            <div><label>Address</label><input id="pAddress"></div>
+          </div>
+          <label>Bio</label>
+          <textarea id="pBio" rows="3"></textarea>
+          <div class="form-actions"><button class="btn btn-primary" type="submit">Save Profile</button></div>
+        </form>
+      </div>
+      <div class="panel">
+        <div class="panel-header"><h2>Change Password</h2></div>
+        <form id="passwordForm">
+          <label>Current Password</label><input id="curPass" type="password" required>
+          <label>New Password</label><input id="newPass" type="password" minlength="6" required>
+          <label>Confirm New Password</label><input id="newPass2" type="password" minlength="6" required>
+          <div class="form-actions"><button class="btn btn-primary" type="submit">Update Password</button></div>
+        </form>
+        <hr style="border:none;border-top:1px solid #edf2ee;margin:16px 0;">
+        <div class="muted" id="accountMeta"></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-header"><h2>My Favourites</h2><button class="btn btn-light" id="refreshFavs">Refresh</button></div>
+      <div id="favouritesList" class="list"><div class="loading-state">Loading favourites...</div></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-header"><h2>My Booking Requests</h2><button class="btn btn-light" id="refreshBookings">Refresh</button></div>
+      <div id="bookingsList" class="list"><div class="loading-state">Loading bookings...</div></div>
+    </section>
+  </main>
+
+  <script src="js/api.js"></script>
+  <script src="js/common.js"></script>
+  <script>
+    (function(){
+      let currentUser = null;
+      function alert(msg,type='error'){ document.getElementById('dashAlert').innerHTML = msg ? `<div class="alert ${type}">${MHUI.escapeHtml(msg)}</div>` : ''; }
+
+      async function loadProfile(){
+        const res = await MHApi.request('/api/users/profile');
+        currentUser = res.user;
+        MHApi.setAuth(MHApi.getToken(), currentUser);
+        document.getElementById('pName').value = currentUser.name || '';
+        document.getElementById('pEmail').value = currentUser.email || '';
+        document.getElementById('pPhone').value = currentUser.phone || '';
+        document.getElementById('pAddress').value = currentUser.address || '';
+        document.getElementById('pBio').value = currentUser.bio || '';
+        document.getElementById('accountMeta').innerHTML = `<strong>Role:</strong> ${MHUI.escapeHtml(currentUser.role)}<br><strong>Joined:</strong> ${MHUI.escapeHtml(MHUI.formatDate(currentUser.createdAt))}`;
+        MHUI.renderNavAuth('navAuthArea');
+      }
+
+      async function loadFavourites(){
+        const el = document.getElementById('favouritesList');
+        el.innerHTML = '<div class="loading-state">Loading favourites...</div>';
+        try {
+          const res = await MHApi.request('/api/favourites/mine');
+          const items = res.data || [];
+          if (!items.length) { el.innerHTML = '<div class="empty-state">No favourites yet. <a class="inline-link" href="index.html#explore">Explore listings</a>.</div>'; return; }
+          el.innerHTML = items.map(f => {
+            const m = f.mess;
+            if (!m) return '';
+            return `<div class="list-item" style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;">
+              <div>
+                <h3 style="margin-bottom:4px;">${MHUI.escapeHtml(m.name)}</h3>
+                <div class="muted">📍 ${MHUI.escapeHtml([m.area,m.address,m.city].filter(Boolean).join(', ') || 'N/A')} • ₹${Number(m.price||0)} • ⭐ ${Number(m.averageRating||0).toFixed(1)}</div>
+              </div>
+              <div class="form-actions" style="margin:0;">
+                <a class="btn btn-light" href="details.html?id=${encodeURIComponent(m._id)}">View</a>
+                <button class="btn btn-danger" data-remove-fav="${MHUI.escapeHtml(m._id)}">Remove</button>
+              </div>
+            </div>`;
+          }).join('');
+          el.querySelectorAll('[data-remove-fav]').forEach(btn => btn.addEventListener('click', async () => {
+            try {
+              await MHApi.request(`/api/messes/${encodeURIComponent(btn.getAttribute('data-remove-fav'))}/favourite`, { method: 'DELETE' });
+              MHUI.showToast('Removed from favourites', 'success');
+              loadFavourites();
+            } catch(e){ MHUI.showToast(e.message || 'Failed', 'error'); }
+          }));
+        } catch(e){ el.innerHTML = `<div class="error-state">${MHUI.escapeHtml(e.message || 'Failed to load favourites')}</div>`; }
+      }
+
+      function badge(status){
+        const map = { pending:'warn', accepted:'success', rejected:'danger', cancelled:'gray' };
+        return `<span class="badge ${map[status]||'gray'}">${MHUI.escapeHtml(status||'unknown')}</span>`;
+      }
+
+      async function loadBookings(){
+        const el = document.getElementById('bookingsList');
+        el.innerHTML = '<div class="loading-state">Loading bookings...</div>';
+        try {
+          const res = await MHApi.request('/api/bookings/mine');
+          const items = res.data || [];
+          if (!items.length) { el.innerHTML = '<div class="empty-state">No booking requests yet.</div>'; return; }
+          el.innerHTML = items.map(b => `
+            <div class="list-item">
+              <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center;">
+                <h3 style="margin:0;">${MHUI.escapeHtml(b.mess?.name || 'Mess')}</h3>
+                ${badge(b.status)}
+              </div>
+              <div class="muted" style="margin-top:4px;">📍 ${MHUI.escapeHtml([b.mess?.area,b.mess?.address].filter(Boolean).join(', ') || 'N/A')}</div>
+              <div style="margin-top:8px;display:grid;gap:4px;font-size:.95rem;">
+                <div><strong>Visit:</strong> ${MHUI.escapeHtml(b.visitDate || '')} ${b.visitTime ? '• '+MHUI.escapeHtml(b.visitTime):''}</div>
+                <div><strong>Message:</strong> ${MHUI.escapeHtml(b.message || '-')}</div>
+                ${b.ownerNote ? `<div><strong>Owner note:</strong> ${MHUI.escapeHtml(b.ownerNote)}</div>`:''}
+              </div>
+              <div class="form-actions">
+                ${b.mess?._id ? `<a class="btn btn-light" href="details.html?id=${encodeURIComponent(b.mess._id)}">View Mess</a>`:''}
+                ${b.status === 'pending' || b.status === 'accepted' ? `<button class="btn btn-danger" data-cancel-booking="${MHUI.escapeHtml(b._id)}">Cancel Request</button>`:''}
+              </div>
+            </div>`).join('');
+          el.querySelectorAll('[data-cancel-booking]').forEach(btn => btn.addEventListener('click', async () => {
+            if (!confirm('Cancel this booking request?')) return;
+            try {
+              await MHApi.request(`/api/bookings/${encodeURIComponent(btn.getAttribute('data-cancel-booking'))}/status`, { method:'PATCH', body: JSON.stringify({ status:'cancelled' }) });
+              MHUI.showToast('Booking cancelled', 'success'); loadBookings();
+            } catch(e){ MHUI.showToast(e.message || 'Failed', 'error'); }
+          }));
+        } catch(e){ el.innerHTML = `<div class="error-state">${MHUI.escapeHtml(e.message || 'Failed to load bookings')}</div>`; }
+      }
+
+      document.addEventListener('DOMContentLoaded', async () => {
+        const user = MHUI.requireRole(['student']);
+        if (!user) return;
+        try { await loadProfile(); await Promise.all([loadFavourites(), loadBookings()]); }
+        catch(e){ alert(e.message || 'Failed to load dashboard. Please ensure you are logged in and the server is running.'); }
+
+        document.getElementById('profileForm').addEventListener('submit', async (e) => {
+          e.preventDefault(); alert('');
+          try {
+            const res = await MHApi.request('/api/users/profile', { method:'PUT', body: JSON.stringify({
+              name: document.getElementById('pName').value.trim(),
+              phone: document.getElementById('pPhone').value.trim(),
+              address: document.getElementById('pAddress').value.trim(),
+              bio: document.getElementById('pBio').value.trim(),
+            })});
+            MHApi.setAuth(MHApi.getToken(), res.user); alert('Profile updated successfully.', 'success'); MHUI.renderNavAuth('navAuthArea');
+          } catch(e){ alert(e.message || 'Failed to update profile'); }
+        });
+
+        document.getElementById('passwordForm').addEventListener('submit', async (e) => {
+          e.preventDefault(); alert('');
+          const currentPassword = document.getElementById('curPass').value;
+          const newPassword = document.getElementById('newPass').value;
+          const newPassword2 = document.getElementById('newPass2').value;
+          if (newPassword !== newPassword2) return alert('New passwords do not match.');
+          try {
+            await MHApi.request('/api/users/change-password', { method:'PUT', body: JSON.stringify({ currentPassword, newPassword }) });
+            e.target.reset(); alert('Password updated successfully.', 'success');
+          } catch(e){ alert(e.message || 'Failed to update password'); }
+        });
+
+        document.getElementById('refreshFavs').addEventListener('click', loadFavourites);
+        document.getElementById('refreshBookings').addEventListener('click', loadBookings);
+      });
+    })();
+  </script>
+</body>
+</html>

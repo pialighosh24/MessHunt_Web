@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login | MessHunt</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="navbar">
+    <a href="index.html" class="brand"><span class="brand-name">Mess<span>Hunt</span></span></a>
+    <div class="nav-actions"><a class="btn btn-light" href="register.html">Register</a></div>
+  </header>
+
+  <main class="auth-page">
+    <div class="auth-card">
+      <h1>Login</h1>
+      <p>Access your student, owner, or admin account.</p>
+      <div id="loginAlert"></div>
+      <form id="loginForm">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" required placeholder="you@example.com" />
+
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required placeholder="Enter your password" />
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary btn-block">Login</button>
+        </div>
+      </form>
+      <p style="margin-top:12px;">Don't have an account? <a class="inline-link" href="register.html">Register</a></p>
+    </div>
+  </main>
+
+  <script src="js/api.js"></script>
+  <script src="js/common.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const existing = MHApi.getUser();
+      if (existing) {
+        const dash = existing.role === 'admin' ? 'admin-dashboard.html' : existing.role === 'owner' ? 'owner-dashboard.html' : 'student-dashboard.html';
+        window.location.href = dash;
+        return;
+      }
+      const form = document.getElementById('loginForm');
+      const alertBox = document.getElementById('loginAlert');
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        alertBox.innerHTML = '';
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
+        try {
+          const res = await MHApi.request('/api/auth/login', {
+            method: 'POST',
+            body: JSON.stringify({ email, password })
+          });
+          MHApi.setAuth(res.token, res.user);
+          const role = res.user.role;
+          window.location.href = role === 'admin' ? 'admin-dashboard.html' : role === 'owner' ? 'owner-dashboard.html' : 'student-dashboard.html';
+        } catch (err) {
+          alertBox.innerHTML = `<div class="alert error">${MHUI.escapeHtml(err.message || 'Login failed')}</div>`;
+        }
+      });
+    });
+  </script>
+</body>
+</html>

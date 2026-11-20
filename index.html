@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MessHunt | Find Student Mess & Accommodation</title>
+  <meta name="description" content="MessHunt helps students discover, compare and book mess accommodations." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="navbar">
+    <a href="index.html" class="brand">
+      <img src="images/logo.png" alt="MessHunt Logo" class="brand-logo" onerror="this.style.display='none'">
+      <span class="brand-name">Mess<span>Hunt</span></span>
+    </a>
+    <nav class="desktop-nav">
+      <a href="#explore">Explore</a>
+      <a href="#featured">Featured</a>
+      <a href="#how">How It Works</a>
+    </nav>
+    <div class="nav-actions" id="navAuthArea"></div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-content">
+        <div class="eyebrow">STUDENT ACCOMMODATION DISCOVERY</div>
+        <h1>Find a mess that feels like <span>home</span>.</h1>
+        <p>Search, compare and request bookings for student-friendly mess accommodations. View details, facilities, location, reviews and availability in one place.</p>
+
+        <div class="hero-search">
+          <input type="text" id="heroSearch" placeholder="Search by mess name, area or location..." autocomplete="off">
+          <button class="btn btn-primary" id="heroSearchBtn">Search</button>
+        </div>
+
+        <div class="quick-tags" id="quickTags">
+          <button data-query="Tantigeria">Tantigeria</button>
+          <button data-query="Rangamati">Rangamati</button>
+          <button data-query="Rabindra Nagar">Rabindra Nagar</button>
+          <button data-query="Ashok Nagar">Ashok Nagar</button>
+          <button data-query="Boys">Boys</button>
+          <button data-query="Girls">Girls</button>
+        </div>
+      </div>
+      <div class="hero-visual simple-visual">
+        <div class="hero-card-highlight">
+          <h3>Why MessHunt?</h3>
+          <ul>
+            <li>Verified listing workflow (admin approval)</li>
+            <li>Compare price, facilities and food options</li>
+            <li>Read reviews and save favourites</li>
+            <li>Send booking requests without online payment</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="featured" class="section">
+      <div class="section-heading">
+        <div>
+          <div class="eyebrow">DISCOVER</div>
+          <h2>Featured & Recently Added</h2>
+          <p>Explore approved mess listings from the database.</p>
+        </div>
+      </div>
+      <div class="two-col-lists">
+        <div>
+          <h3 class="subheading">Featured Listings</h3>
+          <div id="featuredGrid" class="mess-grid compact"></div>
+        </div>
+        <div>
+          <h3 class="subheading">Recently Added</h3>
+          <div id="recentGrid" class="mess-grid compact"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="explore" class="section explore-section">
+      <div class="section-heading">
+        <div>
+          <div class="eyebrow">EXPLORE</div>
+          <h2>Find Mess Listings</h2>
+          <p>Use search, filters and sorting to find suitable accommodation.</p>
+        </div>
+        <button class="btn btn-light" id="clearFiltersBtn" type="button">Clear Filters</button>
+      </div>
+
+      <div class="filter-bar">
+        <input id="searchInput" type="text" placeholder="Search by name, area, location..." />
+        <select id="areaFilter">
+          <option value="">All Areas</option>
+        </select>
+        <select id="genderFilter">
+          <option value="">Any Gender</option>
+          <option value="Boys">Boys</option>
+          <option value="Girls">Girls</option>
+          <option value="Co-ed">Co-ed</option>
+          <option value="Any">Any</option>
+        </select>
+        <select id="foodFilter">
+          <option value="">Any Food</option>
+          <option value="Veg">Veg</option>
+          <option value="Non-Veg">Non-Veg</option>
+          <option value="Both">Both</option>
+        </select>
+        <input id="minPrice" type="number" min="0" placeholder="Min ₹" />
+        <input id="maxPrice" type="number" min="0" placeholder="Max ₹" />
+        <select id="sortFilter">
+          <option value="newest">Newest</option>
+          <option value="rating_desc">Top Rated</option>
+          <option value="price_asc">Price: Low to High</option>
+          <option value="price_desc">Price: High to Low</option>
+        </select>
+        <button class="btn btn-primary" id="applyFiltersBtn" type="button">Apply</button>
+      </div>
+
+      <div id="resultsMeta" class="results-meta"></div>
+      <div class="mess-grid" id="messGrid"></div>
+      <div class="no-results" id="noResults" style="display:none;">No mess listings found. Try adjusting your search or filters.</div>
+      <div class="pagination" id="pagination"></div>
+    </section>
+
+    <section id="how" class="section how-section">
+      <div class="center-heading">
+        <div class="eyebrow">HOW IT WORKS</div>
+        <h2>Simple steps for students</h2>
+      </div>
+      <div class="feature-grid">
+        <div class="feature-card"><div class="feature-icon">🔎</div><h3>Search & Filter</h3><p>Find listings by location, price, food, room type and facilities.</p></div>
+        <div class="feature-card"><div class="feature-icon">🏠</div><h3>Compare Details</h3><p>Check photos, amenities, reviews, contact info and map location.</p></div>
+        <div class="feature-card"><div class="feature-icon">❤️</div><h3>Save Favourites</h3><p>Login as a student to save listings and manage your profile.</p></div>
+        <div class="feature-card"><div class="feature-icon">📅</div><h3>Request Booking</h3><p>Send a booking request to the owner and track status from your dashboard.</p></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <img src="images/logo.png" alt="MessHunt" onerror="this.style.display='none'">
+        <strong>Mess<span>Hunt</span></strong>
+      </div>
+      <p>Student mess and accommodation discovery platform.</p>
+    </div>
+    <div class="footer-bottom">© 2026 MessHunt • BCA Final Year Project</div>
+  </footer>
+
+  <script src="js/api.js"></script>
+  <script src="js/common.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

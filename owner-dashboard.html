@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Owner Dashboard | MessHunt</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="navbar">
+    <a href="index.html" class="brand"><span class="brand-name">Mess<span>Hunt</span></span></a>
+    <nav class="desktop-nav"><a href="index.html">Home</a></nav>
+    <div class="nav-actions" id="navAuthArea"></div>
+  </header>
+
+  <main class="page-wrap">
+    <div class="page-header">
+      <div>
+        <div class="eyebrow">MESS OWNER PORTAL</div>
+        <h1>Owner Dashboard</h1>
+        <p>Manage your listings, booking requests and reviews.</p>
+      </div>
+      <button class="btn btn-primary" id="newListingBtn">+ New Listing</button>
+    </div>
+
+    <div id="ownerAlert"></div>
+
+    <section class="grid-4" id="statsGrid">
+      <div class="stat-card"><div class="label">Total Listings</div><div class="value" id="stTotal">-</div></div>
+      <div class="stat-card"><div class="label">Approved</div><div class="value" id="stApproved">-</div></div>
+      <div class="stat-card"><div class="label">Pending</div><div class="value" id="stPending">-</div></div>
+      <div class="stat-card"><div class="label">Bookings (Pending)</div><div class="value" id="stBookings">-</div></div>
+    </section>
+
+    <section class="panel" id="listingFormPanel" style="display:none; margin-top:16px;">
+      <div class="panel-header"><h2 id="listingFormTitle">Create Listing</h2><button class="btn btn-light" id="cancelListingEdit">Cancel</button></div>
+      <form id="listingForm">
+        <input type="hidden" id="listingId">
+        <div class="form-grid">
+          <div><label>Mess Name *</label><input id="mName" required></div>
+          <div><label>Monthly Price (₹) *</label><input id="mPrice" type="number" min="0" required></div>
+          <div><label>Area</label><input id="mArea"></div>
+          <div><label>City</label><input id="mCity" value="Midnapore"></div>
+          <div><label>Gender</label><select id="mGender"><option>Any</option><option>Boys</option><option>Girls</option><option>Co-ed</option></select></div>
+          <div><label>Room Type</label><input id="mRoomType" placeholder="e.g. Shared / Single"></div>
+          <div><label>Food Type</label><input id="mFoodType" placeholder="e.g. Veg / Non-Veg / Both"></div>
+          <div><label>Food Available</label><select id="mFoodAvailable"><option value="true">Yes</option><option value="false">No</option></select></div>
+          <div><label>Availability</label><select id="mAvailability"><option value="available">Available</option><option value="unavailable">Unavailable</option></select></div>
+          <div><label>Contact Phone</label><input id="mPhone"></div>
+          <div><label>WhatsApp</label><input id="mWhatsapp"></div>
+          <div><label>Contact Email</label><input id="mEmail" type="email"></div>
+          <div><label>Latitude</label><input id="mLat" type="number" step="any"></div>
+          <div><label>Longitude</label><input id="mLng" type="number" step="any"></div>
+        </div>
+        <label>Address</label><input id="mAddress">
+        <label>Description</label><textarea id="mDesc" rows="3"></textarea>
+        <label>Facilities (comma separated)</label><input id="mFacilities" placeholder="Wi-Fi, Laundry, Study Table">
+        <label>Rules (comma separated)</label><input id="mRules" placeholder="No smoking, Gate closes at 10 PM">
+        <label>Image URLs (comma separated)</label><input id="mImages" placeholder="images/mess1.jpg, https://...">
+        <label>Map URL (optional)</label><input id="mMapUrl" placeholder="https://maps.google.com/...">
+        <div class="form-actions"><button class="btn btn-primary" type="submit">Save Listing</button></div>
+        <p class="small-note">New/edited listings may require admin approval before appearing in public search.</p>
+      </form>
+    </section>
+
+    <section class="panel" style="margin-top:16px;">
+      <div class="panel-header"><h2>My Listings</h2><button class="btn btn-light" id="refreshListings">Refresh</button></div>
+      <div id="myListings" class="list"><div class="loading-state">Loading listings...</div></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-header"><h2>Booking Requests</h2><button class="btn btn-light" id="refreshOwnerBookings">Refresh</button></div>
+      <div id="ownerBookings" class="list"><div class="loading-state">Loading bookings...</div></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-header"><h2>Reviews on My Listings</h2><button class="btn btn-light" id="refreshOwnerReviews">Refresh</button></div>
+      <div id="ownerReviews" class="list"><div class="loading-state">Loading reviews...</div></div>
+    </section>
+  </main>
+
+  <script src="js/api.js"></script>
+  <script src="js/common.js"></script>
+  <script>
+    (function(){
+      let listings = [];
+      function alertBox(msg,type='error'){ document.getElementById('ownerAlert').innerHTML = msg ? `<div class="alert ${type}">${MHUI.escapeHtml(msg)}</div>` : ''; }
+      function badge(status){
+        const map={approved:'success',pending:'warn',rejected:'danger',suspended:'danger',available:'success',unavailable:'gray',accepted:'success',cancelled:'gray'};
+        return `<span class="badge ${map[status]||'gray'}">${MHUI.escapeHtml(status||'')}</span>`;
+      }
+      function csvToArr(v){ return (v||'').split(',').map(s=>s.trim()).filter(Boolean); }
+      function arrToCsv(v){ return Array.isArray(v)?v.join(', '):''; }
+
+      async function loadStats(){
+        const res = await MHApi.request('/api/owner/dashboard');
+        const d = res.data || {}; const l=d.listings||{}; const b=d.bookings||{};
+        document.getElementById('stTotal').textContent = l.total ?? 0;
+        document.getElementById('stApproved').textContent = l.approved ?? 0;
+        document.getElementById('stPending').textContent = l.pending ?? 0;
+        document.getElementById('stBookings').textContent = `${b.total ?? 0} (${b.pending ?? 0} pending)`;
+      }
+
+      async function loadListings(){
+        const el = document.getElementById('myListings');
+        el.innerHTML = '<div class="loading-state">Loading listings...</div>';
+        const res = await MHApi.request('/api/messes/owner/mine');
+        listings = res.data || [];
+        if (!listings.length){ el.innerHTML = '<div class="empty-state">No listings yet. Create your first mess listing.</div>'; return; }
+        el.innerHTML = listings.map(m => `
+          <div class="list-item">
+            <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center;">
+              <h3 style="margin:0;">${MHUI.escapeHtml(m.name)}</h3>
+              <div>${badge(m.approvalStatus)} ${badge(m.availabilityStatus)}</div>
+            </div>
+            <div class="muted">₹${Number(m.price||0)} • ${MHUI.escapeHtml([m.area,m.city].filter(Boolean).join(', ')||'N/A')} • ⭐ ${Number(m.averageRating||0).toFixed(1)} (${m.reviewCount||0})</div>
+            ${m.rejectionReason ? `<div class="alert error" style="margin-top:8px;">Reason: ${MHUI.escapeHtml(m.rejectionReason)}</div>`:''}
+            <div class="form-actions">
+              <a class="btn btn-light" href="details.html?id=${encodeURIComponent(m._id)}">View</a>
+              <button class="btn btn-light" data-edit-listing="${m._id}">Edit</button>
+              <button class="btn btn-danger" data-delete-listing="${m._id}">Delete</button>
+            </div>
+          </div>`).join('');
+        el.querySelectorAll('[data-edit-listing]').forEach(b=>b.addEventListener('click',()=>openEdit(b.getAttribute('data-edit-listing'))));
+        el.querySelectorAll('[data-delete-listing]').forEach(b=>b.addEventListener('click',()=>deleteListing(b.getAttribute('data-delete-listing'))));
+      }
+
+      function openCreate(){
+        document.getElementById('listingForm').reset();
+        document.getElementById('listingId').value='';
+        document.getElementById('mCity').value='Midnapore';
+        document.getElementById('listingFormTitle').textContent='Create Listing';
+        document.getElementById('listingFormPanel').style.display='block';
+        window.scrollTo({top:0,behavior:'smooth'});
+      }
+      function openEdit(id){
+        const m = listings.find(x=>String(x._id)===String(id)); if(!m) return;
+        document.getElementById('listingId').value=m._id;
+        document.getElementById('mName').value=m.name||'';
+        document.getElementById('mPrice').value=m.price??'';
+        document.getElementById('mArea').value=m.area||'';
+        document.getElementById('mCity').value=m.city||'';
+        document.getElementById('mGender').value=m.gender||'Any';
+        document.getElementById('mRoomType').value=m.roomType||'';
+        document.getElementById('mFoodType').value=m.foodType||'';
+        document.getElementById('mFoodAvailable').value=String(m.foodAvailable!==false);
+        document.getElementById('mAvailability').value=m.availabilityStatus||'available';
+        document.getElementById('mPhone').value=m.contactPhone||'';
+        document.getElementById('mWhatsapp').value=m.whatsapp||'';
+        document.getElementById('mEmail').value=m.contactEmail||'';
+        document.getElementById('mLat').value=m.location?.lat ?? '';
+        document.getElementById('mLng').value=m.location?.lng ?? '';
+        document.getElementById('mAddress').value=m.address||'';
+        document.getElementById('mDesc').value=m.description||'';
+        document.getElementById('mFacilities').value=arrToCsv(m.facilities);
+        document.getElementById('mRules').value=arrToCsv(m.rules);
+        document.getElementById('mImages').value=arrToCsv(m.images);
+        document.getElementById('mMapUrl').value=m.location?.mapUrl||'';
+        document.getElementById('listingFormTitle').textContent='Edit Listing';
+        document.getElementById('listingFormPanel').style.display='block';
+        window.scrollTo({top:0,behavior:'smooth'});
+      }
+      async function deleteListing(id){
+        if(!confirm('Delete this listing?')) return;
+        try{ await MHApi.request(`/api/messes/${encodeURIComponent(id)}`, { method:'DELETE' }); MHUI.showToast('Listing deleted','success'); await Promise.all([loadStats(),loadListings()]); }
+        catch(e){ MHUI.showToast(e.message||'Failed to delete','error'); }
+      }
+
+      async function loadOwnerBookings(){
+        const el=document.getElementById('ownerBookings'); el.innerHTML='<div class="loading-state">Loading bookings...</div>';
+        try{
+          const res = await MHApi.request('/api/bookings/mine');
+          const items = res.data||[];
+          if(!items.length){ el.innerHTML='<div class="empty-state">No booking requests yet.</div>'; return; }
+          el.innerHTML = items.map(b=>`
+            <div class="list-item">
+              <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;"><h3 style="margin:0;">${MHUI.escapeHtml(b.mess?.name||'Mess')}</h3>${badge(b.status)}</div>
+              <div class="muted">Student: ${MHUI.escapeHtml(b.studentName||b.student?.name||'')} • ${MHUI.escapeHtml(b.studentPhone||b.student?.phone||'')} • ${MHUI.escapeHtml(b.studentEmail||b.student?.email||'')}</div>
+              <div style="margin-top:6px;"><strong>Visit:</strong> ${MHUI.escapeHtml(b.visitDate||'')} ${b.visitTime?'• '+MHUI.escapeHtml(b.visitTime):''}</div>
+              ${b.message?`<div style="margin-top:4px;"><strong>Message:</strong> ${MHUI.escapeHtml(b.message)}</div>`:''}
+              <div class="form-actions">
+                <button class="btn btn-primary" data-booking-status="${b._id}" data-status="accepted">Accept</button>
+                <button class="btn btn-warning" data-booking-status="${b._id}" data-status="rejected">Reject</button>
+                <button class="btn btn-light" data-booking-status="${b._id}" data-status="pending">Mark Pending</button>
+              </div>
+            </div>`).join('');
+          el.querySelectorAll('[data-booking-status]').forEach(btn=>btn.addEventListener('click', async ()=>{
+            const note = prompt('Owner note (optional):','') || '';
+            try{
+              await MHApi.request(`/api/bookings/${encodeURIComponent(btn.getAttribute('data-booking-status'))}/status`, { method:'PATCH', body: JSON.stringify({ status: btn.getAttribute('data-status'), ownerNote: note }) });
+              MHUI.showToast('Booking updated','success'); await Promise.all([loadStats(),loadOwnerBookings()]);
+            }catch(e){ MHUI.showToast(e.message||'Failed','error'); }
+          }));
+        }catch(e){ el.innerHTML=`<div class="error-state">${MHUI.escapeHtml(e.message||'Failed to load bookings')}</div>`; }
+      }
+
+      async function loadOwnerReviews(){
+        const el=document.getElementById('ownerReviews'); el.innerHTML='<div class="loading-state">Loading reviews...</div>';
+        try{
+          const res = await MHApi.request('/api/owner/reviews');
+          const items=res.data||[];
+          if(!items.length){ el.innerHTML='<div class="empty-state">No reviews yet.</div>'; return; }
+          el.innerHTML = items.map(r=>`<div class="list-item"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;"><strong>${MHUI.escapeHtml(r.mess?.name||'Mess')}</strong><span>${'★'.repeat(r.rating||0)}${'☆'.repeat(5-(r.rating||0))}</span></div><div class="muted">${MHUI.escapeHtml(r.user?.name||'User')} • ${MHUI.escapeHtml(MHUI.formatDate(r.createdAt))} ${r.isHidden?'<span class="badge gray">Hidden</span>':''}</div><p style="margin-top:6px;">${MHUI.escapeHtml(r.comment||'')}</p></div>`).join('');
+        }catch(e){ el.innerHTML=`<div class="error-state">${MHUI.escapeHtml(e.message||'Failed to load reviews')}</div>`; }
+      }
+
+      document.addEventListener('DOMContentLoaded', async ()=>{
+        const user = MHUI.requireRole(['owner']); if(!user) return;
+        try{ await Promise.all([loadStats(), loadListings(), loadOwnerBookings(), loadOwnerReviews()]); }
+        catch(e){ alertBox(e.message||'Failed to load dashboard.'); }
+
+        document.getElementById('newListingBtn').addEventListener('click', openCreate);
+        document.getElementById('cancelListingEdit').addEventListener('click', ()=>{ document.getElementById('listingFormPanel').style.display='none'; });
+        document.getElementById('refreshListings').addEventListener('click', async()=>{ await Promise.all([loadStats(),loadListings()]); });
+        document.getElementById('refreshOwnerBookings').addEventListener('click', async()=>{ await Promise.all([loadStats(),loadOwnerBookings()]); });
+        document.getElementById('refreshOwnerReviews').addEventListener('click', loadOwnerReviews);
+
+        document.getElementById('listingForm').addEventListener('submit', async (e)=>{
+          e.preventDefault(); alertBox('');
+          const id = document.getElementById('listingId').value;
+          const payload = {
+            name: document.getElementById('mName').value.trim(),
+            price: Number(document.getElementById('mPrice').value),
+            area: document.getElementById('mArea').value.trim(),
+            city: document.getElementById('mCity').value.trim(),
+            gender: document.getElementById('mGender').value,
+            roomType: document.getElementById('mRoomType').value.trim(),
+            foodType: document.getElementById('mFoodType').value.trim(),
+            foodAvailable: document.getElementById('mFoodAvailable').value === 'true',
+            availabilityStatus: document.getElementById('mAvailability').value,
+            contactPhone: document.getElementById('mPhone').value.trim(),
+            whatsapp: document.getElementById('mWhatsapp').value.trim(),
+            contactEmail: document.getElementById('mEmail').value.trim(),
+            lat: document.getElementById('mLat').value ? Number(document.getElementById('mLat').value) : null,
+            lng: document.getElementById('mLng').value ? Number(document.getElementById('mLng').value) : null,
+            mapUrl: document.getElementById('mMapUrl').value.trim(),
+            address: document.getElementById('mAddress').value.trim(),
+            description: document.getElementById('mDesc').value.trim(),
+            facilities: csvToArr(document.getElementById('mFacilities').value),
+            rules: csvToArr(document.getElementById('mRules').value),
+            images: csvToArr(document.getElementById('mImages').value),
+          };
+          try{
+            if(id){ await MHApi.request(`/api/messes/${encodeURIComponent(id)}`, { method:'PUT', body: JSON.stringify(payload) }); MHUI.showToast('Listing updated','success'); }
+            else { await MHApi.request('/api/messes', { method:'POST', body: JSON.stringify(payload) }); MHUI.showToast('Listing created','success'); }
+            document.getElementById('listingFormPanel').style.display='none';
+            await Promise.all([loadStats(), loadListings()]);
+          }catch(err){ alertBox(err.message||'Failed to save listing'); }
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
