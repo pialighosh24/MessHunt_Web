@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 120" role="img" aria-label="MessHunt logo placeholder">
+  <rect x="0" y="0" width="420" height="120" rx="16" fill="#FFFFFF"/>
+  <g transform="translate(18,16)">
+    <path d="M10 38 L44 10 L78 38 V78 H10 Z" fill="#102F53"/>
+    <rect x="35" y="48" width="18" height="30" rx="3" fill="#F2A000"/>
+    <path d="M20 38 L44 18 L68 38" fill="none" stroke="#F2A000" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="72" cy="30" r="14" fill="#F2A000"/>
+    <circle cx="72" cy="30" r="7" fill="none" stroke="#102F53" stroke-width="3"/>
+    <line x1="77" y1="35" x2="86" y2="44" stroke="#102F53" stroke-width="4" stroke-linecap="round"/>
+    <path d="M30 10 L44 2 L58 10 L44 16 Z" fill="#F2A000"/>
+  </g>
+  <text x="112" y="58" font-family="Inter, Arial, sans-serif" font-size="46" font-weight="800" fill="#102F53">Mess<tspan fill="#F2A000">Hunt</tspan></text>
+  <text x="114" y="86" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="600" fill="#64748B">Find Your Perfect Mess</text>
+  <text x="114" y="106" font-family="Inter, Arial, sans-serif" font-size="11" fill="#64748B">Placeholder mark — replace with corrected original logo image</text>
+</svg>

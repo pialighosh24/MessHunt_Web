@@ -4,12 +4,19 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Login | MessHunt</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <header class="navbar">
-    <a href="index.html" class="brand"><span class="brand-name">Mess<span>Hunt</span></span></a>
+    <a href="index.html" class="brand" aria-label="MessHunt Home">
+      <img src="assets/logo.svg" alt="MessHunt" class="brand-logo" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+      <div class="brand-fallback" style="display:none;">
+        <span class="brand-name">Mess<span>Hunt</span></span>
+        <span class="brand-tagline">Find Your Perfect Mess</span>
+      </div>
+    </a>
     <div class="nav-actions"><a class="btn btn-light" href="register.html">Register</a></div>
   </header>
 

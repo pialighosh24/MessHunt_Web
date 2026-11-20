@@ -16,6 +16,9 @@ npm-debug.log*
 .DS_Store
 Thumbs.db
 
+# Editor/IDE
+.vscode/
+
 # Private keys
 *.pem
 *.key

@@ -7,12 +7,33 @@ const parseBoolean = (val) => {
   return false;
 };
 
+const toArray = (v) => {
+  if (Array.isArray(v)) return v.map(s => String(s).trim()).filter(Boolean);
+  if (typeof v === 'string') return v.split(',').map(s => s.trim()).filter(Boolean);
+  return [];
+};
+
+const normalizeAccommodationType = (v) => {
+  const s = String(v || '').trim();
+  if (/^boys$/i.test(s)) return 'Boys';
+  if (/^girls$/i.test(s)) return 'Girls';
+  if (/^(unisex|co-?ed)$/i.test(s)) return 'Unisex';
+  return '';
+};
+
 const buildMessPayload = (body, ownerId, isCreate = false) => {
   const payload = {};
-  const fields = ['name','description','address','area','city','price','roomType','gender','foodType','foodAvailable','facilities','rules','contactPhone','contactEmail','whatsapp','images','availabilityStatus'];
+  const fields = [
+    'name','description','address','area','city','price','securityDeposit','roomType','roomSharing','furnishing','bathroomType',
+    'gender','accommodationType','foodType','foodAvailable','foodIncluded','foodPreference','breakfast','lunch','dinner',
+    'selfCooking','kitchenAccess','cookingGas','inductionCooking','electricityCharges','waterSupply',
+    'facilities','rules','contactPhone','contactEmail','whatsapp','images','availabilityStatus'
+  ];
   for (const f of fields) {
     if (Object.prototype.hasOwnProperty.call(body, f)) payload[f] = body[f];
   }
+
+  // Location
   if (Object.prototype.hasOwnProperty.call(body, 'lat') || Object.prototype.hasOwnProperty.call(body, 'lng') || Object.prototype.hasOwnProperty.call(body, 'mapUrl')) {
     payload.location = {
       lat: body.lat !== undefined && body.lat !== '' ? Number(body.lat) : (body.location?.lat ?? null),
@@ -22,10 +43,48 @@ const buildMessPayload = (body, ownerId, isCreate = false) => {
   } else if (body.location) {
     payload.location = body.location;
   }
-  if (typeof payload.price === 'string') payload.price = Number(payload.price);
-  if (typeof payload.facilities === 'string') payload.facilities = payload.facilities.split(',').map(s => s.trim()).filter(Boolean);
-  if (typeof payload.rules === 'string') payload.rules = payload.rules.split(',').map(s => s.trim()).filter(Boolean);
-  if (typeof payload.images === 'string') payload.images = payload.images.split(',').map(s => s.trim()).filter(Boolean);
+
+  // Nearby
+  if (body.nearby || body.nearbyCollege || body.nearbyBusStand || body.nearbyRailwayStation) {
+    payload.nearby = {
+      college: (body.nearby?.college ?? body.nearbyCollege ?? '').toString().trim(),
+      busStand: (body.nearby?.busStand ?? body.nearbyBusStand ?? '').toString().trim(),
+      railwayStation: (body.nearby?.railwayStation ?? body.nearbyRailwayStation ?? '').toString().trim(),
+    };
+  }
+
+  // Types/conversions
+  if (payload.price !== undefined && payload.price !== '') payload.price = Number(payload.price);
+  if (payload.securityDeposit === '' || payload.securityDeposit === undefined) {
+    // keep null if explicitly blank in create? but don't overwrite unintentionally on partial update unless provided
+    if (isCreate || Object.prototype.hasOwnProperty.call(body, 'securityDeposit')) payload.securityDeposit = null;
+  } else if (payload.securityDeposit !== undefined) {
+    payload.securityDeposit = Number(payload.securityDeposit);
+  }
+  if (Object.prototype.hasOwnProperty.call(body, 'facilities')) payload.facilities = toArray(payload.facilities);
+  if (Object.prototype.hasOwnProperty.call(body, 'rules')) payload.rules = toArray(payload.rules);
+  if (Object.prototype.hasOwnProperty.call(body, 'images')) payload.images = toArray(payload.images);
+  if (Object.prototype.hasOwnProperty.call(body, 'foodAvailable')) payload.foodAvailable = parseBoolean(payload.foodAvailable);
+
+  // Normalize accommodation type and keep gender in sync for compatibility
+  const acc = normalizeAccommodationType(payload.accommodationType || payload.gender);
+  if (acc) {
+    payload.accommodationType = acc;
+    payload.gender = acc === 'Unisex' ? 'Co-ed' : acc; // maintain compatibility with existing enum usage
+  } else if (payload.accommodationType) {
+    payload.accommodationType = String(payload.accommodationType).trim();
+  }
+
+  // Derive foodAvailable if foodIncluded/foodPreference indicates no food
+  if (payload.foodIncluded === 'Not available' || payload.foodPreference === 'No food') {
+    payload.foodAvailable = false;
+  }
+
+  // Keep legacy foodType aligned if foodPreference provided
+  if (payload.foodPreference && payload.foodPreference !== 'Not specified' && !payload.foodType) {
+    payload.foodType = payload.foodPreference === 'Non-veg' ? 'Non-Veg' : payload.foodPreference;
+  }
+
   if (isCreate) {
     payload.owner = ownerId;
     payload.approvalStatus = 'pending';
@@ -33,36 +92,98 @@ const buildMessPayload = (body, ownerId, isCreate = false) => {
   return payload;
 };
 
+const escapeRegex = (s) => String(s).trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 // Public: list approved & available messes with search/filter/sort/pagination
 const getPublicMesses = asyncHandler(async (req, res) => {
   const {
-    search = '', area, city, gender, foodType, foodAvailable, roomType, minPrice, maxPrice,
-    facilities, availability, sort = 'newest', page = 1, limit = 12
+    search = '',
+    location, // preferred
+    area, city,
+    accommodationType, gender,
+    foodPreference, foodType,
+    minPrice, maxPrice,
+    nearby, // college | bus | railway
+    facilities,
+    sort = 'newest',
+    page = 1,
+    limit = 12
   } = req.query;
 
   const query = { approvalStatus: 'approved', availabilityStatus: 'available' };
 
-  if (search) {
-    const regex = new RegExp(String(search).trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+  // Text/location search (case-insensitive, partial)
+  const searchText = String(search || location || area || '').trim();
+  if (searchText) {
+    const regex = new RegExp(escapeRegex(searchText), 'i');
     query.$or = [
-      { name: regex }, { area: regex }, { address: regex }, { city: regex }, { description: regex }, { foodType: regex }, { roomType: regex }
+      { name: regex }, { area: regex }, { address: regex }, { city: regex }, { description: regex },
+      { foodType: regex }, { foodPreference: regex }, { roomType: regex }, { roomSharing: regex },
+      { 'nearby.college': regex }, { 'nearby.busStand': regex }, { 'nearby.railwayStation': regex }
     ];
   }
-  if (area) query.area = new RegExp(`^${String(area).trim()}$`, 'i');
-  if (city) query.city = new RegExp(String(city).trim(), 'i');
-  if (gender) query.gender = gender;
-  if (roomType) query.roomType = new RegExp(String(roomType).trim(), 'i');
-  if (foodType) query.foodType = new RegExp(String(foodType).trim(), 'i');
-  if (foodAvailable !== undefined) query.foodAvailable = parseBoolean(foodAvailable);
-  if (availability) query.availabilityStatus = availability;
+  if (city) query.city = new RegExp(escapeRegex(city), 'i');
+  if (area && !search) query.area = new RegExp(escapeRegex(area), 'i');
+
+  // Accommodation type (Boys/Girls/Unisex) with compatibility
+  const acc = normalizeAccommodationType(accommodationType || gender);
+  if (acc === 'Boys') query.$and = [...(query.$and || []), { $or: [{ accommodationType: 'Boys' }, { gender: 'Boys' }] }];
+  if (acc === 'Girls') query.$and = [...(query.$and || []), { $or: [{ accommodationType: 'Girls' }, { gender: 'Girls' }] }];
+  if (acc === 'Unisex') query.$and = [...(query.$and || []), { $or: [{ accommodationType: 'Unisex' }, { gender: { $in: ['Co-ed', 'Unisex', 'Any'] } }] }];
+
+  // Food preference (Veg/Non-veg/Both/No food)
+  const fp = String(foodPreference || foodType || '').trim().toLowerCase();
+  if (fp) {
+    const foodAnd = query.$and || [];
+    if (fp === 'no food' || fp === 'no-food' || fp === 'none') {
+      foodAnd.push({ $or: [{ foodIncluded: 'Not available' }, { foodAvailable: false }, { foodPreference: 'No food' }] });
+    } else if (fp === 'veg') {
+      foodAnd.push({ $or: [{ foodPreference: /^veg$/i }, { foodType: /^veg$/i }] });
+    } else if (fp === 'non-veg' || fp === 'nonveg' || fp === 'non veg') {
+      foodAnd.push({ $or: [{ foodPreference: /^non-?veg$/i }, { foodType: /^non-?veg$/i }] });
+    } else if (fp === 'both') {
+      foodAnd.push({ $or: [{ foodPreference: /^both$/i }, { foodType: /both|veg\s*\+|non-?veg/i }] });
+    }
+    if (foodAnd.length) query.$and = foodAnd;
+  }
+
+  // Budget
   if (minPrice || maxPrice) {
     query.price = {};
-    if (minPrice) query.price.$gte = Number(minPrice);
-    if (maxPrice) query.price.$lte = Number(maxPrice);
+    if (minPrice !== '' && minPrice !== undefined) query.price.$gte = Number(minPrice);
+    if (maxPrice !== '' && maxPrice !== undefined) query.price.$lte = Number(maxPrice);
+    if (Object.keys(query.price).length === 0) delete query.price;
   }
+
+  // Nearby places filter (text-based, only matches if owner provided info)
+  if (nearby) {
+    const n = String(nearby).toLowerCase();
+    const nearAnd = query.$and || [];
+    if (n === 'college' || n === 'university' || n === 'college_university') {
+      nearAnd.push({ 'nearby.college': { $exists: true, $nin: ['', null] } });
+    } else if (n === 'bus' || n === 'bus_stand' || n === 'bus-stand') {
+      nearAnd.push({ 'nearby.busStand': { $exists: true, $nin: ['', null] } });
+    } else if (n === 'railway' || n === 'railway_station' || n === 'railway-station') {
+      nearAnd.push({ 'nearby.railwayStation': { $exists: true, $nin: ['', null] } });
+    }
+    if (nearAnd.length) query.$and = nearAnd;
+  }
+
+  // Facilities (simple useful set supported; match in facilities array or bathroomType field)
   if (facilities) {
     const facs = String(facilities).split(',').map(s => s.trim()).filter(Boolean);
-    if (facs.length) query.facilities = { $all: facs.map(f => new RegExp(f, 'i')) };
+    const facAnd = query.$and || [];
+    facs.forEach(f => {
+      if (/attached bathroom/i.test(f)) {
+        facAnd.push({ $or: [
+          { bathroomType: /attached/i },
+          { facilities: { $elemMatch: { $regex: /attached/i } } }
+        ]});
+      } else {
+        facAnd.push({ facilities: { $elemMatch: { $regex: new RegExp(escapeRegex(f), 'i') } } });
+      }
+    });
+    if (facAnd.length) query.$and = facAnd;
   }
 
   let sortObj = { createdAt: -1 };
@@ -91,8 +212,6 @@ const getPublicMessById = asyncHandler(async (req, res) => {
   const mess = await Mess.findById(req.params.id).populate('owner', 'name phone email ownerVerified role');
   if (!mess) return res.status(404).json({ success: false, message: 'Mess listing not found.' });
 
-  // Public can view only approved listings in general; owner/admin may view their own/non-approved via separate routes,
-  // but details endpoint should be useful. Allow if approved, else only owner/admin.
   const isOwner = req.user && String(mess.owner?._id || mess.owner) === String(req.user._id);
   const isAdmin = req.user && req.user.role === 'admin';
   if (mess.approvalStatus !== 'approved' && !isOwner && !isAdmin) {
@@ -140,7 +259,6 @@ const updateMyMess = asyncHandler(async (req, res) => {
   }
   const payload = buildMessPayload(req.body || {}, req.user._id, false);
   delete payload.owner;
-  // If owner edits an approved listing, set back to pending for re-approval? safer to require approval; keep simple: set pending on substantive edits
   Object.assign(mess, payload);
   if (mess.approvalStatus === 'approved') {
     mess.approvalStatus = 'pending';

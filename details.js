@@ -5,14 +5,15 @@
   let myReview = null;
   let selectedRating = 0;
 
-  function setAlert(msg, type = 'error') {
-    const el = document.getElementById('pageAlert');
-    if (!el) return;
-    el.innerHTML = msg ? `<div class="alert ${type}">${MHUI.escapeHtml(msg)}</div>` : '';
-  }
-
   function user() { return MHApi.getUser(); }
   function isStudent() { return user()?.role === 'student'; }
+  function val(v) {
+    if (v === null || v === undefined || v === '') return 'Not specified';
+    if (typeof v === 'boolean') return v ? 'Yes' : 'No';
+    return String(v);
+  }
+  function money(v) { return (v === null || v === undefined || v === '') ? 'Not specified' : `₹${Number(v)}`; }
+  function accType(m) { return m.accommodationType || (m.gender === 'Co-ed' ? 'Unisex' : m.gender) || 'Not specified'; }
 
   async function loadMess() {
     if (!messId) {
@@ -29,11 +30,16 @@
     }
   }
 
+  function infoRow(k, v) {
+    return `<div class="row"><div class="k">${MHUI.escapeHtml(k)}</div><div class="v">${MHUI.escapeHtml(val(v))}</div></div>`;
+  }
+
   function renderMess() {
     const m = currentMess;
     if (!m) return;
-    const loc = [m.address, m.area, m.city].filter(Boolean).join(', ') || 'Not specified';
-    const ownerName = m.owner?.name || 'Owner';
+    const locParts = [m.address, m.area, m.city].filter(Boolean);
+    const loc = locParts.join(', ') || 'Not specified';
+    const ownerName = m.owner?.name || 'Not specified';
 
     document.title = `${m.name} | MessHunt`;
     document.getElementById('messHeaderPanel').innerHTML = `
@@ -44,7 +50,7 @@
           <p>📍 ${MHUI.escapeHtml(loc)}</p>
         </div>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-          <span class="badge ${m.availabilityStatus === 'available' ? 'success' : 'gray'}">${MHUI.escapeHtml(m.availabilityStatus || 'unknown')}</span>
+          <span class="badge ${m.availabilityStatus === 'available' ? 'success' : 'gray'}">${MHUI.escapeHtml(m.availabilityStatus === 'available' ? 'Available' : 'Unavailable')}</span>
           <span class="badge warn">⭐ ${Number(m.averageRating || 0).toFixed(1)} (${Number(m.reviewCount || 0)})</span>
           ${isStudent() ? `<button class="btn btn-light" id="favToggleBtn">❤ Favourite</button>` : ''}
           ${isStudent() ? `<button class="btn btn-light" id="reportListingBtn">Report Listing</button>` : ''}
@@ -53,70 +59,137 @@
       <p>${MHUI.escapeHtml(m.description || 'No description provided.')}</p>`;
 
     // Gallery
-    const images = (m.images && m.images.length) ? m.images : ['images/logo.png'];
+    const images = (m.images && m.images.length) ? m.images : [];
     const galleryPanel = document.getElementById('galleryPanel');
     galleryPanel.style.display = 'block';
     const main = document.getElementById('mainGalleryImage');
-    main.src = images[0];
+    const photoNote = document.getElementById('photoNote');
+    if (images.length) {
+      main.src = images[0];
+      photoNote.textContent = 'Actual accommodation photos provided by the owner (if available).';
+    } else {
+      main.src = 'assets/logo.svg';
+      photoNote.textContent = 'No photos available for this listing.';
+    }
     const thumbRow = document.getElementById('thumbRow');
-    thumbRow.innerHTML = images.map((img, i) => `<img src="${MHUI.escapeHtml(img)}" data-src="${MHUI.escapeHtml(img)}" class="${i===0?'active':''}" onerror="this.src='images/logo.png'">`).join('');
+    thumbRow.innerHTML = images.map((img, i) => `<img src="${MHUI.escapeHtml(img)}" data-src="${MHUI.escapeHtml(img)}" class="${i===0?'active':''}" alt="Photo ${i+1}" onerror="this.remove()">`).join('');
     thumbRow.querySelectorAll('img').forEach(img => img.addEventListener('click', () => {
       main.src = img.getAttribute('data-src');
       thumbRow.querySelectorAll('img').forEach(x => x.classList.remove('active'));
       img.classList.add('active');
     }));
 
-    // Info
-    const infoPanel = document.getElementById('infoPanel');
-    infoPanel.style.display = 'block';
-    const facilities = (m.facilities || []).map(f => `<span class="facility-pill">${MHUI.escapeHtml(f)}</span>`).join('') || '<span class="muted">No facilities listed.</span>';
-    const rules = (m.rules || []).map(r => `<li>${MHUI.escapeHtml(r)}</li>`).join('') || '<li class="muted">No rules specified.</li>';
-    infoPanel.innerHTML = `
-      <div class="panel-header"><h2>Key Information</h2></div>
-      <div class="kv-grid" style="margin-bottom:12px;">
-        <div class="kv"><small>Monthly Price</small><strong>₹${Number(m.price || 0)}</strong></div>
-        <div class="kv"><small>Room Type</small><strong>${MHUI.escapeHtml(m.roomType || 'N/A')}</strong></div>
-        <div class="kv"><small>Gender</small><strong>${MHUI.escapeHtml(m.gender || 'Any')}</strong></div>
-        <div class="kv"><small>Food</small><strong>${MHUI.escapeHtml(m.foodType || (m.foodAvailable ? 'Available' : 'Not specified'))}</strong></div>
-      </div>
-      <h3>Facilities</h3>
-      <div class="facility-list">${facilities}</div>
-      <h3 style="margin-top:14px;">House Rules</h3>
-      <ul style="padding-left:18px; margin-top:6px;">${rules}</ul>`;
-
-    // Contact
-    const contactPanel = document.getElementById('contactPanel');
-    contactPanel.style.display = 'block';
+    // Details sections
+    const panel = document.getElementById('detailsInfoPanel');
+    panel.style.display = 'block';
+    const facilities = (m.facilities || []).map(f => `<span class="facility-pill">${MHUI.escapeHtml(f)}</span>`).join('') || '<span class="muted">Not specified</span>';
     const phone = m.contactPhone || m.owner?.phone || '';
     const whatsapp = m.whatsapp || phone || '';
     const email = m.contactEmail || m.owner?.email || '';
     const waNum = (whatsapp || '').replace(/[^0-9]/g, '');
-    const mapLink = (m.location?.lat && m.location?.lng)
-      ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(m.location.lat)},${encodeURIComponent(m.location.lng)}`
-      : (m.location?.mapUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(loc)}`);
-    contactPanel.innerHTML = `
-      <div class="panel-header"><h2>Owner & Contact</h2></div>
-      <div class="info-list">
-        <div class="info-row"><span>Owner</span><strong>${MHUI.escapeHtml(ownerName)}</strong></div>
-        <div class="info-row"><span>Phone</span><strong>${MHUI.escapeHtml(phone || 'Not provided')}</strong></div>
-        <div class="info-row"><span>Email</span><strong>${MHUI.escapeHtml(email || 'Not provided')}</strong></div>
-        <div class="info-row"><span>WhatsApp</span><strong>${MHUI.escapeHtml(whatsapp || 'Not provided')}</strong></div>
-      </div>
-      <div class="contact-links">
-        ${phone ? `<a class="btn btn-light" href="tel:${MHUI.escapeHtml(phone)}">Call</a>` : ''}
-        ${waNum ? `<a class="btn btn-light" target="_blank" rel="noopener" href="https://wa.me/91${MHUI.escapeHtml(waNum)}">WhatsApp</a>` : ''}
-        ${email ? `<a class="btn btn-light" href="mailto:${MHUI.escapeHtml(email)}">Email</a>` : ''}
-        <a class="btn btn-primary" target="_blank" rel="noopener" href="${mapLink}">Open in Google Maps</a>
-      </div>
-      <p class="small-note" style="margin-top:10px;">Contact the owner to confirm availability and details before visiting.</p>`;
 
-    // Location/map
+    panel.innerHTML = `
+      <div class="info-section">
+        <h2>Basic Information</h2>
+        <div class="info-table">
+          ${infoRow('Mess/Hostel Name', m.name)}
+          ${infoRow('Full Address', m.address)}
+          ${infoRow('Town/City', m.city)}
+          ${infoRow('Area/Locality', m.area)}
+          ${infoRow('Accommodation Type', accType(m))}
+          ${infoRow('Monthly Rent', money(m.price))}
+          ${infoRow('Security Deposit', money(m.securityDeposit))}
+          ${infoRow('Current Availability', m.availabilityStatus === 'available' ? 'Available' : 'Unavailable')}
+          ${infoRow('Short Description', m.description)}
+        </div>
+      </div>
+
+      <div class="info-section">
+        <h2>Room Information</h2>
+        <div class="info-table">
+          ${infoRow('Room Sharing', m.roomSharing || m.roomType)}
+          ${infoRow('Furnishing', m.furnishing)}
+          ${infoRow('Bathroom', m.bathroomType)}
+        </div>
+      </div>
+
+      <div class="info-section">
+        <h2>Self-cooking & Kitchen Facilities</h2>
+        <div class="info-table">
+          ${infoRow('Self-cooking Facility', m.selfCooking)}
+          ${infoRow('Kitchen Access', m.kitchenAccess)}
+          ${infoRow('Cooking Gas', m.cookingGas)}
+          ${infoRow('Induction Cooking', m.inductionCooking)}
+        </div>
+        <p class="small-note" style="margin-top:8px;">This section helps students understand whether they can prepare their own food. Information shown as provided by the owner.</p>
+      </div>
+
+      <div class="info-section">
+        <h2>Food Information</h2>
+        <div class="info-table">
+          ${infoRow('Food Included', m.foodIncluded)}
+          ${infoRow('Food Preference', m.foodPreference || m.foodType)}
+          ${infoRow('Breakfast', m.breakfast)}
+          ${infoRow('Lunch', m.lunch)}
+          ${infoRow('Dinner', m.dinner)}
+        </div>
+      </div>
+
+      <div class="info-section">
+        <h2>Main Facilities & Utilities</h2>
+        <div class="info-table">
+          ${infoRow('Water Supply', m.waterSupply)}
+          ${infoRow('Electricity Charges', m.electricityCharges)}
+        </div>
+        <h3 style="margin-top:10px;">Facilities</h3>
+        <div class="facility-list">${facilities}</div>
+      </div>
+
+      <div class="info-section">
+        <h2>Nearby Places & Other Information</h2>
+        <div class="info-table">
+          ${infoRow('Nearby College/University', m.nearby?.college)}
+          ${infoRow('Nearby Bus Stand', m.nearby?.busStand)}
+          ${infoRow('Nearby Railway Station', m.nearby?.railwayStation)}
+        </div>
+        <p class="small-note" style="margin-top:8px;">Nearby information is shown only when provided by the owner/listing data.</p>
+      </div>
+
+      <div class="info-section">
+        <h2>Owner & Contact Information</h2>
+        <div class="info-table">
+          ${infoRow('Owner Name', ownerName)}
+          ${infoRow('Phone', phone)}
+          ${infoRow('WhatsApp', whatsapp)}
+          ${infoRow('Email', email)}
+        </div>
+        <div class="contact-links" style="margin-top:10px;">
+          ${phone ? `<a class="btn btn-light" href="tel:${MHUI.escapeHtml(phone)}">Call</a>` : ''}
+          ${waNum ? `<a class="btn btn-light" target="_blank" rel="noopener" href="https://wa.me/91${MHUI.escapeHtml(waNum)}">WhatsApp</a>` : ''}
+          ${email ? `<a class="btn btn-light" href="mailto:${MHUI.escapeHtml(email)}">Email</a>` : ''}
+        </div>
+      </div>`;
+
+    renderLocation(m, loc);
+    document.getElementById('reviewsPanel').style.display = 'block';
+    document.getElementById('bookingPanel').style.display = 'block';
+    renderReviewForm();
+    renderBookingForm();
+    document.getElementById('favToggleBtn')?.addEventListener('click', toggleFavourite);
+    document.getElementById('reportListingBtn')?.addEventListener('click', () => reportTarget('mess', m._id));
+  }
+
+  function renderLocation(m, loc) {
     const locationPanel = document.getElementById('locationPanel');
     locationPanel.style.display = 'block';
     const lat = m.location?.lat;
     const lng = m.location?.lng;
+    const mapLink = (lat && lng)
+      ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(lat)},${encodeURIComponent(lng)}`
+      : (m.location?.mapUrl || (loc !== 'Not specified' ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(loc)}` : ''));
+
     let mapHtml = `<p class="muted">Map coordinates are not available for this listing.</p>`;
-    if (lat && lng) {
+    if (lat != null && lng != null && !Number.isNaN(Number(lat)) && !Number.isNaN(Number(lng))) {
       const delta = 0.01;
       const bbox = `${lng-delta},${lat-delta},${lng+delta},${lat+delta}`;
       const src = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lng}`;
@@ -124,29 +197,23 @@
         <iframe class="map-frame" title="Mess Location" src="${src}"></iframe>
         <div class="form-actions" style="margin-top:10px;">
           <button class="btn btn-light" id="useMyLocationBtn" type="button">Use My Location</button>
-          <a class="btn btn-primary" target="_blank" rel="noopener" href="${mapLink}">Directions</a>
+          ${mapLink ? `<a class="btn btn-primary" target="_blank" rel="noopener" href="${mapLink}">Open in Google Maps</a>` : ''}
         </div>
         <p id="myLocationText" class="small-note" style="margin-top:8px;"></p>`;
-    } else {
+    } else if (mapLink) {
       mapHtml += `<div class="form-actions" style="margin-top:10px;"><a class="btn btn-primary" target="_blank" rel="noopener" href="${mapLink}">Search on Google Maps</a></div>`;
+    } else {
+      mapHtml += `<p class="small-note" style="margin-top:8px;">No map link available.</p>`;
     }
-    locationPanel.innerHTML = `<div class="panel-header"><h2>Location</h2></div><p style="margin-bottom:10px;">${MHUI.escapeHtml(loc)}</p>${mapHtml}`;
+
+    locationPanel.innerHTML = `<div class="panel-header"><h2>Map & Location</h2></div><p style="margin-bottom:10px;">${MHUI.escapeHtml(loc)}</p>${mapHtml}`;
     document.getElementById('useMyLocationBtn')?.addEventListener('click', () => {
       if (!navigator.geolocation) return MHUI.showToast('Geolocation is not supported by your browser.', 'error');
       navigator.geolocation.getCurrentPosition((pos) => {
         const t = document.getElementById('myLocationText');
-        if (t) t.textContent = `Your location: ${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}. Open directions to compare with the mess location.`;
+        if (t) t.textContent = `Your location: ${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}. Use directions to compare distance.`;
       }, () => MHUI.showToast('Unable to access your location.', 'error'));
     });
-
-    // Reviews & booking panels visible
-    document.getElementById('reviewsPanel').style.display = 'block';
-    document.getElementById('bookingPanel').style.display = 'block';
-    renderReviewForm();
-    renderBookingForm();
-
-    document.getElementById('favToggleBtn')?.addEventListener('click', toggleFavourite);
-    document.getElementById('reportListingBtn')?.addEventListener('click', () => reportTarget('mess', m._id));
   }
 
   async function toggleFavourite() {
@@ -277,7 +344,6 @@
       currentMess = res.data;
     } catch (_) {}
     await loadReviews();
-    // update header rating quickly
     if (currentMess) renderMess();
   }
 

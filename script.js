@@ -1,37 +1,43 @@
-// MessHunt landing/discovery (DB-backed via API, no membership/payment/AI)
+// MessHunt landing/discovery: DB-backed search, filters, location autocomplete, map (no membership/payment/AI)
 (function () {
-  const state = {
-    page: 1,
-    limit: 9,
-    totalPages: 1,
-  };
+  const state = { page: 1, limit: 9, totalPages: 1 };
+  let resultsMap = null;
+  let markersLayer = null;
 
   function qs(id) { return document.getElementById(id); }
 
   function cardImage(mess) {
-    const img = (mess.images && mess.images[0]) ? mess.images[0] : 'images/logo.png';
-    return img;
+    return (mess.images && mess.images[0]) ? mess.images[0] : 'assets/logo.svg';
   }
 
-  function messCard(mess, compact = false) {
-    const facilities = (mess.facilities || []).slice(0, compact ? 3 : 4).map(f => `<span class="tag">${MHUI.escapeHtml(f)}</span>`).join('');
+  function displayAccommodation(mess) {
+    return mess.accommodationType || (mess.gender === 'Co-ed' ? 'Unisex' : mess.gender) || 'Not specified';
+  }
+
+  function displayFood(mess) {
+    if (mess.foodIncluded === 'Not available' || mess.foodAvailable === false) return 'No food';
+    return mess.foodPreference && mess.foodPreference !== 'Not specified' ? mess.foodPreference : (mess.foodType || 'Not specified');
+  }
+
+  function messCard(mess) {
+    const facilities = (mess.facilities || []).slice(0, 4).map(f => `<span class="tag">${MHUI.escapeHtml(f)}</span>`).join('');
     const locationText = [mess.area, mess.address, mess.city].filter(Boolean).join(', ') || 'Location not specified';
     return `
-      <article class="mess-card ${compact ? 'compact-card' : ''}">
+      <article class="mess-card">
         <div class="mess-image">
-          <img src="${MHUI.escapeHtml(cardImage(mess))}" alt="${MHUI.escapeHtml(mess.name)}" onerror="this.src='images/logo.png'">
+          <img src="${MHUI.escapeHtml(cardImage(mess))}" alt="${MHUI.escapeHtml(mess.name)}" onerror="this.onerror=null;this.src='assets/logo.svg'">
           <div class="rating">⭐ ${Number(mess.averageRating || 0).toFixed(1)}</div>
-          <div class="mess-type">${MHUI.escapeHtml(mess.gender || 'Any')}</div>
+          <div class="mess-type">${MHUI.escapeHtml(displayAccommodation(mess))}</div>
         </div>
         <div class="mess-content">
           <h3>${MHUI.escapeHtml(mess.name)}</h3>
           <p class="mess-location">📍 ${MHUI.escapeHtml(locationText)}</p>
           <div class="facility-tags">${facilities || '<span class="tag muted">No facilities listed</span>'}</div>
           <div class="mess-details">
-            <div class="detail-item"><small>Monthly</small><strong>₹${Number(mess.price || 0)}</strong></div>
-            <div class="detail-item"><small>Food</small><strong>${MHUI.escapeHtml(mess.foodType || (mess.foodAvailable ? 'Available' : 'Not specified'))}</strong></div>
-            <div class="detail-item"><small>Room</small><strong>${MHUI.escapeHtml(mess.roomType || 'N/A')}</strong></div>
-            <div class="detail-item"><small>Status</small><strong>${mess.availabilityStatus === 'available' ? 'Available' : 'Unavailable'}</strong></div>
+            <div class="detail-item"><small>Monthly Rent</small><strong>₹${Number(mess.price || 0)}</strong></div>
+            <div class="detail-item"><small>Accommodation</small><strong>${MHUI.escapeHtml(displayAccommodation(mess))}</strong></div>
+            <div class="detail-item"><small>Food</small><strong>${MHUI.escapeHtml(displayFood(mess))}</strong></div>
+            <div class="detail-item"><small>Availability</small><strong>${mess.availabilityStatus === 'available' ? 'Available' : 'Unavailable'}</strong></div>
           </div>
           <div class="card-actions">
             <a class="btn btn-light" href="details.html?id=${encodeURIComponent(mess._id)}">View Details</a>
@@ -40,44 +46,103 @@
       </article>`;
   }
 
-  async function loadFeaturedAndRecent() {
-    try {
-      const [featured, recent] = await Promise.all([
-        MHApi.request('/api/messes/featured'),
-        MHApi.request('/api/messes/recent')
-      ]);
-      const fg = qs('featuredGrid');
-      const rg = qs('recentGrid');
-      if (fg) fg.innerHTML = (featured.data || []).map(m => messCard(m, true)).join('') || '<div class="empty-state">No featured listings yet.</div>';
-      if (rg) rg.innerHTML = (recent.data || []).map(m => messCard(m, true)).join('') || '<div class="empty-state">No recent listings yet.</div>';
-
-      // Populate area filter from available data
-      const areas = Array.from(new Set([...(featured.data||[]), ...(recent.data||[])].map(m => (m.area||'').trim()).filter(Boolean))).sort();
-      const areaSel = qs('areaFilter');
-      if (areaSel && areas.length) {
-        const existing = new Set(Array.from(areaSel.options).map(o => o.value));
-        areas.forEach(a => { if (!existing.has(a)) { const opt = document.createElement('option'); opt.value = a; opt.textContent = a; areaSel.appendChild(opt); } });
-      }
-    } catch (e) {
-      // silent on landing widgets
-      const fg = qs('featuredGrid'); const rg = qs('recentGrid');
-      if (fg) fg.innerHTML = '<div class="empty-state">Unable to load featured listings right now.</div>';
-      if (rg) rg.innerHTML = '<div class="empty-state">Unable to load recent listings right now.</div>';
-    }
+  function getSelectedFacilities() {
+    return Array.from(document.querySelectorAll('#facilityFilters input[type="checkbox"]:checked')).map(c => c.value);
   }
 
   function collectFilters() {
+    const search = (qs('heroSearch')?.value || qs('searchInput')?.value || '').trim();
+    const location = (qs('locationFilter')?.value || '').trim();
     return {
-      search: (qs('searchInput')?.value || '').trim(),
-      area: qs('areaFilter')?.value || '',
-      gender: qs('genderFilter')?.value || '',
-      foodType: qs('foodFilter')?.value || '',
+      search: search,
+      location: location,
+      accommodationType: qs('accommodationTypeFilter')?.value || '',
       minPrice: qs('minPrice')?.value || '',
       maxPrice: qs('maxPrice')?.value || '',
+      foodPreference: qs('foodPreferenceFilter')?.value || '',
+      nearby: qs('nearbyFilter')?.value || '',
+      facilities: getSelectedFacilities().join(','),
       sort: qs('sortFilter')?.value || 'newest',
       page: state.page,
       limit: state.limit,
     };
+  }
+
+  function setupAutocomplete(inputId, listId, onSelect) {
+    const input = qs(inputId);
+    const list = qs(listId);
+    if (!input || !list || !window.MHLocations) return;
+
+    const render = (items) => {
+      if (!items.length) { list.classList.remove('open'); list.innerHTML = ''; return; }
+      list.innerHTML = items.map(loc => `
+        <div class="autocomplete-item" role="option" data-name="${MHUI.escapeHtml(loc.name)}">
+          <div class="loc-name">${MHUI.escapeHtml(loc.name)}</div>
+          <div class="loc-meta">${MHUI.escapeHtml(loc.district || '')}${loc.note ? ' • ' + MHUI.escapeHtml(loc.note) : ''}</div>
+        </div>`).join('');
+      list.classList.add('open');
+      list.querySelectorAll('.autocomplete-item').forEach(item => {
+        item.addEventListener('mousedown', (e) => { // mousedown to fire before blur
+          e.preventDefault();
+          const name = item.getAttribute('data-name');
+          input.value = name;
+          list.classList.remove('open');
+          if (onSelect) onSelect(name);
+        });
+      });
+    };
+
+    input.addEventListener('input', () => {
+      render(MHLocations.searchLocations(input.value));
+    });
+    input.addEventListener('focus', () => {
+      render(MHLocations.searchLocations(input.value));
+    });
+    input.addEventListener('blur', () => {
+      setTimeout(() => list.classList.remove('open'), 150);
+    });
+  }
+
+  function initMap() {
+    if (resultsMap || !window.L || !qs('resultsMap')) return;
+    try {
+      resultsMap = L.map('resultsMap', { scrollWheelZoom: false }).setView([22.425, 87.32], 10);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(resultsMap);
+      markersLayer = L.layerGroup().addTo(resultsMap);
+    } catch (e) {
+      const el = qs('resultsMap');
+      if (el) el.innerHTML = '<div class="empty-state">Map could not be loaded. Please try again later.</div>';
+    }
+  }
+
+  function updateMap(items) {
+    initMap();
+    const legend = qs('mapLegend');
+    if (!resultsMap || !markersLayer) {
+      if (legend) legend.textContent = 'Map is unavailable.';
+      return;
+    }
+    markersLayer.clearLayers();
+    const mappable = (items || []).filter(m => m && m.location && m.location.lat != null && m.location.lng != null && !Number.isNaN(Number(m.location.lat)) && !Number.isNaN(Number(m.location.lng)));
+    if (!mappable.length) {
+      resultsMap.setView([22.425, 87.32], 9);
+      if (legend) legend.textContent = 'No listings with valid map coordinates in current results. Listings without coordinates are still shown in the list.';
+      setTimeout(() => resultsMap.invalidateSize(), 0);
+      return;
+    }
+    const bounds = [];
+    mappable.forEach(m => {
+      const lat = Number(m.location.lat), lng = Number(m.location.lng);
+      bounds.push([lat, lng]);
+      const popup = `<div style="min-width:180px"><strong>${MHUI.escapeHtml(m.name)}</strong><br><span>${MHUI.escapeHtml([m.area,m.city].filter(Boolean).join(', '))}</span><br><span>₹${Number(m.price||0)}/month • ${MHUI.escapeHtml(displayAccommodation(m))}</span><br><a href="details.html?id=${encodeURIComponent(m._id)}">View details</a></div>`;
+      L.marker([lat, lng]).addTo(markersLayer).bindPopup(popup);
+    });
+    try { resultsMap.fitBounds(bounds, { padding: [20, 20], maxZoom: 14 }); } catch (_) {}
+    if (legend) legend.textContent = `${mappable.length} listing(s) shown on map. ${Math.max((items||[]).length - mappable.length, 0)} listing(s) have no valid coordinates.`;
+    setTimeout(() => resultsMap.invalidateSize(), 0);
   }
 
   async function loadMesses() {
@@ -106,10 +171,12 @@
         grid.innerHTML = items.map(m => messCard(m)).join('');
       }
       if (meta) meta.textContent = `${p.total || 0} listing(s) found • Page ${state.page} of ${state.totalPages}`;
+      updateMap(items);
       renderPagination();
     } catch (e) {
       grid.innerHTML = `<div class="error-state">Failed to load listings: ${MHUI.escapeHtml(e.message || 'Unknown error')}</div>`;
       if (meta) meta.textContent = '';
+      updateMap([]);
       renderPagination();
     }
   }
@@ -118,51 +185,50 @@
     const el = qs('pagination');
     if (!el) return;
     if (state.totalPages <= 1) { el.innerHTML = ''; return; }
-    let html = '';
-    html += `<button class="btn btn-light" ${state.page <= 1 ? 'disabled' : ''} data-page="${state.page - 1}">Prev</button>`;
-    html += `<span class="page-info">Page ${state.page} of ${state.totalPages}</span>`;
-    html += `<button class="btn btn-light" ${state.page >= state.totalPages ? 'disabled' : ''} data-page="${state.page + 1}">Next</button>`;
-    el.innerHTML = html;
+    el.innerHTML = `
+      <button class="btn btn-light" ${state.page <= 1 ? 'disabled' : ''} data-page="${state.page - 1}">Prev</button>
+      <span class="page-info">Page ${state.page} of ${state.totalPages}</span>
+      <button class="btn btn-light" ${state.page >= state.totalPages ? 'disabled' : ''} data-page="${state.page + 1}">Next</button>`;
     el.querySelectorAll('button[data-page]').forEach(btn => {
       btn.addEventListener('click', () => {
         const p = Number(btn.getAttribute('data-page'));
-        if (p >= 1 && p <= state.totalPages) { state.page = p; loadMesses(); }
+        if (p >= 1 && p <= state.totalPages) { state.page = p; loadMesses(); document.getElementById('explore')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
       });
     });
   }
 
-  function clearFilters() {
-    ['searchInput','areaFilter','genderFilter','foodFilter','minPrice','maxPrice'].forEach(id => { const el = qs(id); if (el) el.value = ''; });
-    const sort = qs('sortFilter'); if (sort) sort.value = 'newest';
+  function clearAllFilters() {
+    ['heroSearch','locationFilter','accommodationTypeFilter','minPrice','maxPrice','foodPreferenceFilter','nearbyFilter'].forEach(id => { const el = qs(id); if (el) el.value = ''; });
+    document.querySelectorAll('#facilityFilters input[type="checkbox"]').forEach(c => c.checked = false);
+    state.page = 1;
+    loadMesses();
+  }
+
+  function applyFilters() {
     state.page = 1;
     loadMesses();
   }
 
   document.addEventListener('DOMContentLoaded', () => {
     MHUI.renderNavAuth('navAuthArea');
-    loadFeaturedAndRecent();
-    loadMesses();
 
-    qs('applyFiltersBtn')?.addEventListener('click', () => { state.page = 1; loadMesses(); });
-    qs('clearFiltersBtn')?.addEventListener('click', clearFilters);
-    qs('searchInput')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') { state.page = 1; loadMesses(); } });
+    setupAutocomplete('heroSearch', 'heroAutocomplete', () => { /* selection only */ });
+    setupAutocomplete('locationFilter', 'locationAutocomplete', () => { /* selection only */ });
 
+    // Sync hero search to filter search context when applying
     qs('heroSearchBtn')?.addEventListener('click', () => {
-      const v = qs('heroSearch')?.value || '';
-      const si = qs('searchInput'); if (si) si.value = v;
-      state.page = 1;
-      loadMesses();
+      applyFilters();
       document.getElementById('explore')?.scrollIntoView({ behavior: 'smooth' });
     });
-
-    document.querySelectorAll('#quickTags button[data-query]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const q = btn.getAttribute('data-query') || '';
-        const si = qs('searchInput'); if (si) si.value = q;
-        state.page = 1;
-        loadMesses();
-        document.getElementById('explore')?.scrollIntoView({ behavior: 'smooth' });
-      });
+    qs('heroSearch')?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { applyFilters(); document.getElementById('explore')?.scrollIntoView({ behavior: 'smooth' }); }
     });
+    qs('locationFilter')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') applyFilters(); });
+
+    qs('applyFiltersBtn')?.addEventListener('click', applyFilters);
+    qs('clearFiltersBtn')?.addEventListener('click', clearAllFilters);
+
+    initMap();
+    loadMesses();
   });
 })();

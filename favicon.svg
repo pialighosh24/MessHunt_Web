@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="14" fill="#102F53"/>
+  <path d="M12 30 L32 14 L52 30 V50 H12 Z" fill="#F2A000"/>
+  <rect x="26" y="34" width="12" height="16" rx="2" fill="#102F53"/>
+  <circle cx="44" cy="24" r="8" fill="#FFFFFF" opacity="0.95"/>
+  <circle cx="44" cy="24" r="4.5" fill="none" stroke="#102F53" stroke-width="3"/>
+  <line x1="47.2" y1="27.2" x2="51.5" y2="31.5" stroke="#102F53" stroke-width="3" stroke-linecap="round"/>
+  <text x="32" y="59" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" font-weight="700" fill="#FFFFFF">MH</text>
+</svg>

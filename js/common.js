@@ -66,7 +66,7 @@
     }
     const dash = user.role === 'admin' ? 'admin-dashboard.html' : user.role === 'owner' ? 'owner-dashboard.html' : 'student-dashboard.html';
     el.innerHTML = `
-      <span class="user-badge" style="display:inline-flex;align-items:center;gap:6px;padding:8px 10px;border-radius:999px;background:#eef8f1;color:#176b45;font-weight:600;">${escapeHtml(user.name || user.email)} (${escapeHtml(user.role)})</span>
+      <span class="user-badge" style="display:inline-flex;align-items:center;gap:6px;padding:8px 10px;border-radius:999px;background:#e8f0fb;color:#102F53;font-weight:600;font-size:.9rem;">${escapeHtml(user.name || user.email)} (${escapeHtml(user.role)})</span>
       <a class="btn btn-light" href="${dash}">Dashboard</a>
       <button class="btn btn-primary" id="mhLogoutBtn" type="button">Logout</button>`;
     document.getElementById('mhLogoutBtn')?.addEventListener('click', async () => {

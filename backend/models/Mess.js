@@ -42,16 +42,44 @@ const messSchema = new mongoose.Schema({
     required: [true, 'Monthly price is required'],
     min: 0,
   },
+  securityDeposit: {
+    type: Number,
+    default: null,
+    min: 0,
+  },
+  // Legacy/compatibility field
   roomType: {
     type: String,
     trim: true,
     default: 'Shared',
   },
+  roomSharing: {
+    type: String,
+    trim: true,
+    default: 'Not specified', // Single, Double, Triple, Multiple sharing, Not specified
+  },
+  furnishing: {
+    type: String,
+    trim: true,
+    default: 'Not specified', // Furnished, Unfurnished, Not specified
+  },
+  bathroomType: {
+    type: String,
+    trim: true,
+    default: 'Not specified', // Attached bathroom, Common bathroom, Not specified
+  },
+  // Legacy/compatibility
   gender: {
     type: String,
-    enum: ['Boys', 'Girls', 'Co-ed', 'Any'],
+    enum: ['Boys', 'Girls', 'Co-ed', 'Any', 'Unisex'],
     default: 'Any',
   },
+  accommodationType: {
+    type: String,
+    trim: true,
+    default: 'Unisex', // Boys, Girls, Unisex
+  },
+  // Legacy/compatibility
   foodType: {
     type: String,
     trim: true,
@@ -61,9 +89,57 @@ const messSchema = new mongoose.Schema({
     type: Boolean,
     default: true,
   },
+  foodIncluded: {
+    type: String,
+    trim: true,
+    default: 'Not specified', // Included in rent, Charged separately, Not available, Not specified
+  },
+  foodPreference: {
+    type: String,
+    trim: true,
+    default: 'Not specified', // Veg, Non-veg, Both, Not specified
+  },
+  breakfast: { type: String, trim: true, default: 'Not specified' },
+  lunch: { type: String, trim: true, default: 'Not specified' },
+  dinner: { type: String, trim: true, default: 'Not specified' },
+  selfCooking: {
+    type: String,
+    trim: true,
+    default: 'Not specified', // Available, Not available, Not specified
+  },
+  kitchenAccess: {
+    type: String,
+    trim: true,
+    default: 'Not specified', // Private, Shared, Not available, Not specified
+  },
+  cookingGas: {
+    type: String,
+    trim: true,
+    default: 'Not specified', // Available, Not available, Not specified
+  },
+  inductionCooking: {
+    type: String,
+    trim: true,
+    default: 'Not specified', // Available, Not available, Not specified
+  },
+  electricityCharges: {
+    type: String,
+    trim: true,
+    default: 'Not specified', // Included, Extra, Not specified
+  },
+  waterSupply: {
+    type: String,
+    trim: true,
+    default: 'Not specified', // Available, Not available, Not specified
+  },
   facilities: {
     type: [String],
     default: [],
+  },
+  nearby: {
+    college: { type: String, trim: true, default: '' },
+    busStand: { type: String, trim: true, default: '' },
+    railwayStation: { type: String, trim: true, default: '' },
   },
   rules: {
     type: [String],
