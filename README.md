@@ -6,10 +6,13 @@ MessHunt is a full-stack BCA final-year web application built with **HTML5, CSS3
 
 ## Key Highlights
 
-- **Web-Only Architecture:** Pure HTML5, CSS3, and Vanilla JavaScript frontend — lightweight, responsive, and free of heavyweight framework dependencies.
-- **Single Backend & Database:** One Express.js API server connecting all three portals to a single MongoDB database (`messhunt`).
-- **20 Verified Real Listings:** Preloaded with 20 real accommodations across Midnapore and Kharagpur featuring realistic rental rates, room configurations, facilities, food preferences, and geographic coordinates.
-- **Interactive Map Integration:** Real-time OpenStreetMap / Leaflet map view with pin clusters, popup details, and direct Google Maps navigation links.
+- **Two Frontends, One Backend:** A Vanilla HTML/CSS/JS frontend (served by Express on `http://localhost:5000`) and a React + Vite frontend in `frontend/` (`http://localhost:5173`, proxies `/api` and `/uploads` to port 5000). Both use the same Express API and MongoDB database (`messhunt`).
+- **20 Real Listings with Real Photos:** 20 accommodations across Midnapore and Kharagpur with rent, room, food, facilities, rules, accurate coordinates, and 19 real mess/room photos stored in `uploads/messes/`. Listings without a public photo show the MessHunt emblem fallback (no fake photos).
+- **Auto-Seeding:** All 20 listings (with photo paths, owner details and coordinates) are saved in `backend/data/messes_seed.json`. If the database is empty, `backend/config/db.js` loads them automatically on server start (or run `node seed.js`).
+- **Mess-Name Search:** The hero search matches only the mess name — case-insensitive and punctuation-tolerant (e.g. `puspak`, `TM MESS`, `kharagpur pg`) — with no dropdown. Location, type, budget, food and facility filters are separate.
+- **Real Owner & Contact Information:** Every listing shows owner name, phone, WhatsApp and email with clickable **Call**, **WhatsApp** and **Email** buttons. Only publicly verified numbers/emails are stored; otherwise it shows "Not publicly listed on Google Maps". No fake contact data.
+- **Interactive Map Integration:** OpenStreetMap map on each listing with verified coordinates, plus an "Open Exact Place in Google Maps" link. New listings without coordinates get them inferred automatically from their area/city.
+- **Photo Uploads for Owners:** Owners upload photos from the dashboard (`POST /api/uploads/images` or `/api/owner/upload-image`, multipart or base64). Files are saved in `uploads/messes/`.
 - **Role-Based Access Control (RBAC):** JWT authentication (`Authorization: Bearer <token>`) with bcrypt password hashing protecting Student, Owner, and Admin routes.
 - **Clean Student Workflow:** Students can browse, filter, save favourites, submit reviews, and send visit/booking requests without mandatory online payment gates.
 
@@ -40,11 +43,15 @@ MessHunt_Web/
 │   ├── api.js                  # Frontend API client, JWT token storage, fetch wrapper
 │   ├── common.js               # Shared UI helpers (navbar auth state, alerts, toasts)
 │   └── locations.js            # West Medinipur location data & autocomplete engine
+├── frontend/                   # React + Vite frontend (pages: Home, Details, Owner/Student/Admin dashboards)
+├── uploads/messes/             # Real mess & room photos (served at /uploads/messes/...)
+├── scratch/enrich_listings.js  # Script that applies verified details/contacts/coordinates to the 20 listings
 └── backend/
-    ├── .env                    # Environment configuration (PORT, MONGO_URI, JWT_SECRET)
+    ├── .env                    # Environment configuration (PORT, MONGO_URI, JWT_SECRET) - not committed
     ├── .env.example            # Sample environment configuration template
     ├── server.js               # Express application entry point & static file server
-    ├── seed.js                 # Optional demo seed script
+    ├── seed.js                 # Loads the 20 listings from data/messes_seed.json into an empty DB
+    ├── data/messes_seed.json   # The 20 verified listings (details, contacts, photos, coordinates)
     ├── config/
     │   └── db.js               # Mongoose database connection configuration
     ├── middleware/
@@ -101,9 +108,15 @@ JWT_EXPIRES_IN=7d
 - **MongoDB** (Local MongoDB Community Server running on port `27017`, or MongoDB Atlas)
 
 ### 2. Install Dependencies
+`backend/.env` is not committed to GitHub. Create it first by copying `backend/.env.example` and setting `MONGO_URI` (see Environment Configuration below).
 ```bash
 cd MessHunt_Web/backend
 npm install
+
+# Optional: React frontend
+cd ../frontend
+npm install
+npm run dev   # http://localhost:5173
 ```
 
 ### 3. Start the Server
@@ -112,6 +125,8 @@ cd MessHunt_Web/backend
 npm start
 # or: node server.js
 ```
+
+On first start with an empty database, the 20 listings are loaded automatically from `backend/data/messes_seed.json`. User accounts, bookings, reviews and favourites are **not** included — register new student/owner accounts to try the dashboards.
 
 The Express server will start at:
 ```text
@@ -182,11 +197,12 @@ The system includes 20 live, approved listings across Paschim Medinipur with com
 
 ### 2. Mess Owner Portal (`owner-dashboard.html`)
 - Dashboard overview showing total listings, approved, pending, and booking request counts.
-- Create new mess listings with full details (room sharing, furnishing, bathroom type, food, utilities, coordinates, rules, image URLs).
-- Edit and update existing listings (edited listings automatically enter the moderation queue).
+- Create new mess listings with full details (owner name, phone, WhatsApp, email, room sharing, furnishing, bathroom type, food, utilities, coordinates, rules). Coordinates and Google Maps link are inferred if left blank.
+- Edit or delete listings; upload and remove photos (**Mess & Room Photos**, `📷 Upload Photos`).
 - Receive student booking requests with student contact information and visit dates.
 - Accept, reject, or mark booking requests as pending with custom notes.
-- View ratings and reviews left by students on owner's listings.
+- View and delete student reviews; ratings and review counts are recalculated live.
+- Separate login tokens per role (`mh_token_owner`, `mh_token_student`, `mh_token_admin`) so owner and student can be open in different tabs.
 
 ### 3. Admin Portal (`admin-dashboard.html`)
 - System-wide statistics: registered students, mess owners, active listings, and open moderation reports.
@@ -208,7 +224,9 @@ The system includes 20 live, approved listings across Paschim Medinipur with com
 - `PUT /api/users/change-password` — Change password
 
 ### Mess Listings
-- `GET /api/messes` — Search & filter approved listings (supports location, accommodationType, minPrice, maxPrice, foodPreference, nearby, facilities, pagination)
+- `GET /api/messes` — Search & filter approved listings (`search` = mess name only, case-insensitive; also location, accommodationType, minPrice, maxPrice, foodPreference, nearby, facilities, pagination)
+- `POST /api/uploads/images` — Upload mess photos (Owner/Admin; multipart or base64)
+- `GET /api/owner/bookings`, `GET /api/owner/reviews` — Owner booking requests and reviews
 - `GET /api/messes/:id` — Get mess details by ID
 - `POST /api/messes` — Create new listing (Owner only, starts as pending)
 - `GET /api/messes/owner/mine` — Get owner's listings
@@ -244,9 +262,9 @@ The system includes 20 live, approved listings across Paschim Medinipur with com
 
 ## Viva & Project Defense Notes
 
-1. **Why Vanilla JavaScript over React?**
-   - Direct DOM manipulation demonstrates core web development fundamentals without third-party abstraction overhead.
-   - Faster initial page load time, zero build steps, and simplified static file serving directly from Express.js.
+1. **Why two frontends?**
+   - The Vanilla JS version shows core web fundamentals (DOM manipulation, no build step, served directly by Express).
+   - The React + Vite version in `frontend/` provides a component-based UI on the same API.
 2. **Database Design & Indexing:**
    - Single MongoDB connection with indexed reference fields (`owner`, `mess`, `user`, `student`).
    - Unique compound index on `Review` (`{ mess: 1, user: 1 }`) ensures a student can review a mess only once.
