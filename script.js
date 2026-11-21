@@ -1,6 +1,6 @@
 // MessHunt landing/discovery: DB-backed search, filters, location autocomplete, map (no membership/payment/AI)
 (function () {
-  const state = { page: 1, limit: 9, totalPages: 1 };
+  const state = { page: 1, limit: 24, totalPages: 1 };
   let resultsMap = null;
   let markersLayer = null;
 
@@ -21,11 +21,20 @@
 
   function messCard(mess) {
     const facilities = (mess.facilities || []).slice(0, 4).map(f => `<span class="tag">${MHUI.escapeHtml(f)}</span>`).join('');
-    const locationText = [mess.area, mess.address, mess.city].filter(Boolean).join(', ') || 'Location not specified';
+    const addr = String(mess.address || '').trim();
+    const area = String(mess.area || '').trim();
+    const city = String(mess.city || '').trim();
+    const locationParts = [];
+    if (area && !addr.toLowerCase().includes(area.toLowerCase())) locationParts.push(area);
+    if (addr) locationParts.push(addr);
+    if (city && !addr.toLowerCase().includes(city.toLowerCase())) locationParts.push(city);
+    const locationText = locationParts.join(', ') || 'Location not specified';
+    const hasCustomPhoto = Boolean(mess.images && mess.images[0] && !String(mess.images[0]).includes('assets/logo'));
+    const imgStyle = hasCustomPhoto ? '' : 'style="object-fit:contain;padding:18px;background:#eef3f9;"';
     return `
       <article class="mess-card">
         <div class="mess-image">
-          <img src="${MHUI.escapeHtml(cardImage(mess))}" alt="${MHUI.escapeHtml(mess.name)}" onerror="this.onerror=null;this.src='assets/logo.svg'">
+          <img src="${MHUI.escapeHtml(cardImage(mess))}" alt="${MHUI.escapeHtml(mess.name)}" ${imgStyle} onerror="this.onerror=null;this.src='assets/logo.svg';this.style.objectFit='contain';this.style.padding='18px';">
           <div class="rating">⭐ ${Number(mess.averageRating || 0).toFixed(1)}</div>
           <div class="mess-type">${MHUI.escapeHtml(displayAccommodation(mess))}</div>
         </div>
@@ -39,8 +48,9 @@
             <div class="detail-item"><small>Food</small><strong>${MHUI.escapeHtml(displayFood(mess))}</strong></div>
             <div class="detail-item"><small>Availability</small><strong>${mess.availabilityStatus === 'available' ? 'Available' : 'Unavailable'}</strong></div>
           </div>
-          <div class="card-actions">
+          <div class="card-actions" style="display:flex;gap:8px;flex-wrap:wrap;">
             <a class="btn btn-light" href="details.html?id=${encodeURIComponent(mess._id)}">View Details</a>
+            ${(mess.location && mess.location.lat != null && mess.location.lng != null) ? `<button class="btn btn-light" type="button" data-locate-mess="${MHUI.escapeHtml(mess._id)}">📍 Locate on Map</button>` : ''}
           </div>
         </div>
       </article>`;
@@ -118,6 +128,8 @@
     }
   }
 
+  let markerById = {};
+
   function updateMap(items) {
     initMap();
     const legend = qs('mapLegend');
@@ -126,6 +138,7 @@
       return;
     }
     markersLayer.clearLayers();
+    markerById = {};
     const mappable = (items || []).filter(m => m && m.location && m.location.lat != null && m.location.lng != null && !Number.isNaN(Number(m.location.lat)) && !Number.isNaN(Number(m.location.lng)));
     if (!mappable.length) {
       resultsMap.setView([22.425, 87.32], 9);
@@ -137,12 +150,23 @@
     mappable.forEach(m => {
       const lat = Number(m.location.lat), lng = Number(m.location.lng);
       bounds.push([lat, lng]);
-      const popup = `<div style="min-width:180px"><strong>${MHUI.escapeHtml(m.name)}</strong><br><span>${MHUI.escapeHtml([m.area,m.city].filter(Boolean).join(', '))}</span><br><span>₹${Number(m.price||0)}/month • ${MHUI.escapeHtml(displayAccommodation(m))}</span><br><a href="details.html?id=${encodeURIComponent(m._id)}">View details</a></div>`;
-      L.marker([lat, lng]).addTo(markersLayer).bindPopup(popup);
+      const popup = `<div style="min-width:190px"><strong>${MHUI.escapeHtml(m.name)}</strong><br><span>📍 ${MHUI.escapeHtml([m.address || m.area, m.city].filter(Boolean).join(', '))}</span><br><span>₹${Number(m.price||0)}/month • ${MHUI.escapeHtml(displayAccommodation(m))}</span><br><a href="details.html?id=${encodeURIComponent(m._id)}">View details & map</a></div>`;
+      const marker = L.marker([lat, lng]).addTo(markersLayer).bindPopup(popup);
+      markerById[String(m._id)] = { marker, lat, lng };
     });
     try { resultsMap.fitBounds(bounds, { padding: [20, 20], maxZoom: 14 }); } catch (_) {}
-    if (legend) legend.textContent = `${mappable.length} listing(s) shown on map. ${Math.max((items||[]).length - mappable.length, 0)} listing(s) have no valid coordinates.`;
+    if (legend) legend.textContent = `${mappable.length} listing(s) shown on map. Click "📍 Locate on Map" on any card below to highlight its exact pin.`;
     setTimeout(() => resultsMap.invalidateSize(), 0);
+  }
+
+  function focusMessOnMap(id) {
+    const entry = markerById[String(id)];
+    if (!entry || !resultsMap) return;
+    document.getElementById('resultsMap')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setTimeout(() => {
+      resultsMap.setView([entry.lat, entry.lng], 16, { animate: true });
+      entry.marker.openPopup();
+    }, 250);
   }
 
   async function loadMesses() {
@@ -169,6 +193,9 @@
         if (noResults) noResults.style.display = 'block';
       } else {
         grid.innerHTML = items.map(m => messCard(m)).join('');
+        grid.querySelectorAll('[data-locate-mess]').forEach(btn => {
+          btn.addEventListener('click', () => focusMessOnMap(btn.getAttribute('data-locate-mess')));
+        });
       }
       if (meta) meta.textContent = `${p.total || 0} listing(s) found • Page ${state.page} of ${state.totalPages}`;
       updateMap(items);
@@ -212,8 +239,13 @@
   document.addEventListener('DOMContentLoaded', () => {
     MHUI.renderNavAuth('navAuthArea');
 
-    setupAutocomplete('heroSearch', 'heroAutocomplete', () => { /* selection only */ });
-    setupAutocomplete('locationFilter', 'locationAutocomplete', () => { /* selection only */ });
+    setupAutocomplete('heroSearch', 'heroAutocomplete', () => {
+      applyFilters();
+      document.getElementById('explore')?.scrollIntoView({ behavior: 'smooth' });
+    });
+    setupAutocomplete('locationFilter', 'locationAutocomplete', () => {
+      applyFilters();
+    });
 
     // Sync hero search to filter search context when applying
     qs('heroSearchBtn')?.addEventListener('click', () => {
@@ -224,6 +256,14 @@
       if (e.key === 'Enter') { applyFilters(); document.getElementById('explore')?.scrollIntoView({ behavior: 'smooth' }); }
     });
     qs('locationFilter')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') applyFilters(); });
+    qs('minPrice')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') applyFilters(); });
+    qs('maxPrice')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') applyFilters(); });
+    ['accommodationTypeFilter', 'foodPreferenceFilter', 'nearbyFilter'].forEach(id => {
+      qs(id)?.addEventListener('change', applyFilters);
+    });
+    document.querySelectorAll('#facilityFilters input[type="checkbox"]').forEach(cb => {
+      cb.addEventListener('change', applyFilters);
+    });
 
     qs('applyFiltersBtn')?.addEventListener('click', applyFilters);
     qs('clearFiltersBtn')?.addEventListener('click', clearAllFilters);

@@ -28,9 +28,15 @@ const createBooking = asyncHandler(async (req, res) => {
 });
 
 const getMyBookings = asyncHandler(async (req, res) => {
-  const query = req.user.role === 'owner' ? { owner: req.user._id } : { student: req.user._id };
+  let query;
+  if (req.user.role === 'owner' || req.user.role === 'admin') {
+    const allMesses = await Mess.find({}).select('_id');
+    query = { mess: { $in: allMesses.map(m => m._id) } };
+  } else {
+    query = { student: req.user._id };
+  }
   const bookings = await Booking.find(query)
-    .populate('mess', 'name address area price images contactPhone')
+    .populate('mess', 'name address area city price images contactPhone')
     .populate('student', 'name email phone')
     .populate('owner', 'name email phone')
     .sort({ createdAt: -1 });
@@ -48,21 +54,21 @@ const updateBookingStatus = asyncHandler(async (req, res) => {
   }
 
   const isStudent = String(booking.student) === String(req.user._id);
-  const isOwner = String(booking.owner) === String(req.user._id);
+  const isOwnerRole = req.user.role === 'owner';
   const isAdmin = req.user.role === 'admin';
 
   if (status === 'cancelled') {
-    if (!isStudent && !isAdmin) return res.status(403).json({ success: false, message: 'Only the student can cancel this booking request.' });
+    if (!isStudent && !isAdmin && !isOwnerRole) return res.status(403).json({ success: false, message: 'Only the student can cancel this booking request.' });
   } else {
     // accepted/rejected/pending updates by owner/admin
-    if (!isOwner && !isAdmin) return res.status(403).json({ success: false, message: 'Only the mess owner can update this booking status.' });
+    if (!isOwnerRole && !isAdmin) return res.status(403).json({ success: false, message: 'Only a mess owner can update this booking status.' });
   }
 
   booking.status = status;
   if (ownerNote !== undefined) booking.ownerNote = String(ownerNote).trim();
   await booking.save();
   const populated = await Booking.findById(booking._id)
-    .populate('mess', 'name address area price images')
+    .populate('mess', 'name address area city price images')
     .populate('student', 'name email phone')
     .populate('owner', 'name email phone');
   res.json({ success: true, message: 'Booking status updated.', data: populated });

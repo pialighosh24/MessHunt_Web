@@ -184,22 +184,25 @@
     locationPanel.style.display = 'block';
     const lat = m.location?.lat;
     const lng = m.location?.lng;
-    const mapLink = (lat && lng)
-      ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(lat)},${encodeURIComponent(lng)}`
-      : (m.location?.mapUrl || (loc !== 'Not specified' ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(loc)}` : ''));
+    const placeQuery = [m.name, m.address || m.area, m.city, 'West Bengal'].filter(Boolean).join(', ');
+    const mapLink = m.location?.mapUrl
+      || (placeQuery ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(placeQuery)}` : '')
+      || ((lat && lng) ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(lat)},${encodeURIComponent(lng)}` : '');
 
     let mapHtml = `<p class="muted">Map coordinates are not available for this listing.</p>`;
     if (lat != null && lng != null && !Number.isNaN(Number(lat)) && !Number.isNaN(Number(lng))) {
-      const delta = 0.01;
-      const bbox = `${lng-delta},${lat-delta},${lng+delta},${lat+delta}`;
-      const src = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lng}`;
+      const nLat = Number(lat);
+      const nLng = Number(lng);
+      const delta = 0.004;
+      const bbox = `${(nLng - delta).toFixed(5)},${(nLat - delta).toFixed(5)},${(nLng + delta).toFixed(5)},${(nLat + delta).toFixed(5)}`;
+      const src = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${nLat},${nLng}`;
       mapHtml = `
         <iframe class="map-frame" title="Mess Location" src="${src}"></iframe>
         <div class="form-actions" style="margin-top:10px;">
           <button class="btn btn-light" id="useMyLocationBtn" type="button">Use My Location</button>
-          ${mapLink ? `<a class="btn btn-primary" target="_blank" rel="noopener" href="${mapLink}">Open in Google Maps</a>` : ''}
+          ${mapLink ? `<a class="btn btn-primary" target="_blank" rel="noopener" href="${mapLink}">Open Exact Place in Google Maps</a>` : ''}
         </div>
-        <p id="myLocationText" class="small-note" style="margin-top:8px;"></p>`;
+        <p id="myLocationText" class="small-note" style="margin-top:8px;">Coordinates: ${nLat.toFixed(4)}° N, ${nLng.toFixed(4)}° E</p>`;
     } else if (mapLink) {
       mapHtml += `<div class="form-actions" style="margin-top:10px;"><a class="btn btn-primary" target="_blank" rel="noopener" href="${mapLink}">Search on Google Maps</a></div>`;
     } else {
@@ -241,30 +244,33 @@
     const u = user();
     if (!wrap) return;
     if (!u) {
-      wrap.innerHTML = '<div class="alert">Please <a class="inline-link" href="login.html">login</a> to submit or manage your review.</div>';
+      wrap.innerHTML = '<div class="alert">Please <a class="inline-link" href="login.html">login</a> as a student to submit or manage your review.</div>';
       return;
     }
-    if (u.role === 'admin') {
-      wrap.innerHTML = '<div class="muted">Admins can moderate reviews from the admin dashboard.</div>';
+    if (u.role !== 'student') {
+      wrap.innerHTML = `<div class="muted">Reviews can be submitted from student accounts. You are logged in as <strong>${MHUI.escapeHtml(u.role)}</strong>.</div>`;
       return;
     }
     const isEdit = !!myReview;
+    selectedRating = myReview?.rating || selectedRating || 0;
     wrap.innerHTML = `
       <div class="form-card" style="padding:14px;">
         <h3>${isEdit ? 'Edit Your Review' : 'Write a Review'}</h3>
-        <div class="stars" id="starPicker" style="margin:8px 0;">
-          ${[1,2,3,4,5].map(n => `<button type="button" data-star="${n}" class="${n <= (myReview?.rating || selectedRating) ? 'active' : ''}">★</button>`).join('')}
+        <div class="stars" id="starPicker" style="margin:8px 0;display:flex;align-items:center;gap:4px;">
+          ${[1,2,3,4,5].map(n => `<button type="button" data-star="${n}" class="${n <= selectedRating ? 'active' : ''}">★</button>`).join('')}
+          <span id="starRatingLabel" class="muted" style="margin-left:8px;font-size:0.9rem;">${selectedRating ? `Selected: ${selectedRating} / 5 stars` : 'Click a star to rate (1-5)'}</span>
         </div>
-        <textarea id="reviewComment" rows="3" placeholder="Share your experience...">${MHUI.escapeHtml(myReview?.comment || '')}</textarea>
+        <textarea id="reviewComment" rows="3" placeholder="Share your real experience with this mess...">${MHUI.escapeHtml(myReview?.comment || '')}</textarea>
         <div class="form-actions">
           <button class="btn btn-primary" id="saveReviewBtn" type="button">${isEdit ? 'Update Review' : 'Submit Review'}</button>
           ${isEdit ? '<button class="btn btn-danger" id="deleteMyReviewBtn" type="button">Delete My Review</button>' : ''}
         </div>
       </div>`;
-    selectedRating = myReview?.rating || selectedRating || 0;
     wrap.querySelectorAll('#starPicker button').forEach(btn => btn.addEventListener('click', () => {
       selectedRating = Number(btn.getAttribute('data-star'));
       wrap.querySelectorAll('#starPicker button').forEach(b => b.classList.toggle('active', Number(b.getAttribute('data-star')) <= selectedRating));
+      const lbl = document.getElementById('starRatingLabel');
+      if (lbl) lbl.textContent = `Selected: ${selectedRating} / 5 stars`;
     }));
     document.getElementById('saveReviewBtn')?.addEventListener('click', saveReview);
     document.getElementById('deleteMyReviewBtn')?.addEventListener('click', deleteMyReview);
@@ -275,11 +281,12 @@
       const res = await MHApi.request(`/api/messes/${encodeURIComponent(messId)}/reviews`);
       const reviews = res.data || [];
       const u = user();
-      myReview = u ? reviews.find(r => String(r.user?._id || r.user) === String(u._id)) : null;
+      const uid = u?._id || u?.id;
+      myReview = (u && uid) ? reviews.find(r => String(r.user?._id || r.user) === String(uid)) : null;
       renderReviewForm();
       renderReviews(reviews);
-      const avg = currentMess?.averageRating || 0;
-      const count = currentMess?.reviewCount || reviews.length;
+      const count = reviews.length;
+      const avg = count ? (reviews.reduce((sum, r) => sum + Number(r.rating || 0), 0) / count) : 0;
       document.getElementById('ratingSummary').textContent = `Average: ${Number(avg).toFixed(1)} / 5 • ${count} review(s)`;
     } catch (e) {
       document.getElementById('reviewsList').innerHTML = `<div class="error-state">${MHUI.escapeHtml(e.message || 'Failed to load reviews.')}</div>`;
@@ -342,9 +349,9 @@
     try {
       const res = await MHApi.request(`/api/messes/${encodeURIComponent(messId)}`);
       currentMess = res.data;
+      if (currentMess) renderMess();
     } catch (_) {}
     await loadReviews();
-    if (currentMess) renderMess();
   }
 
   function renderBookingForm() {
@@ -359,14 +366,15 @@
       wrap.innerHTML = `<div class="muted">Booking requests can be created from student accounts. You are logged in as <strong>${MHUI.escapeHtml(u.role)}</strong>.</div>`;
       return;
     }
+    const today = new Date().toISOString().split('T')[0];
     wrap.innerHTML = `
       <form id="bookingForm" class="form-card" style="padding:14px;">
         <p class="small-note">Send a booking/visit request to the owner. No online payment is required.</p>
         <div class="form-grid">
           <div><label for="bName">Your Name</label><input id="bName" value="${MHUI.escapeHtml(u.name || '')}" required></div>
-          <div><label for="bPhone">Phone</label><input id="bPhone" value="${MHUI.escapeHtml(u.phone || '')}" required></div>
+          <div><label for="bPhone">Phone</label><input id="bPhone" value="${MHUI.escapeHtml(u.phone || '')}" placeholder="Enter your contact number" required></div>
           <div><label for="bEmail">Email</label><input id="bEmail" type="email" value="${MHUI.escapeHtml(u.email || '')}" required></div>
-          <div><label for="bDate">Preferred Visit Date</label><input id="bDate" type="date" required></div>
+          <div><label for="bDate">Preferred Visit Date</label><input id="bDate" type="date" min="${today}" value="${today}" required></div>
           <div><label for="bTime">Preferred Time</label>
             <select id="bTime">
               <option>Morning (10:00 AM - 12:00 PM)</option>
@@ -376,11 +384,15 @@
           </div>
         </div>
         <label for="bMsg">Message (optional)</label>
-        <textarea id="bMsg" rows="3" placeholder="Any questions or requirements..."></textarea>
-        <div class="form-actions"><button class="btn btn-primary" type="submit">Submit Booking Request</button></div>
+        <textarea id="bMsg" rows="3" placeholder="Any questions or room requirements..."></textarea>
+        <div class="form-actions"><button class="btn btn-primary" id="submitBookingBtn" type="submit">Submit Booking Request</button></div>
+        <div id="bookingSuccessBox" style="display:none;margin-top:10px;"></div>
       </form>`;
     document.getElementById('bookingForm')?.addEventListener('submit', async (e) => {
       e.preventDefault();
+      const btn = document.getElementById('submitBookingBtn');
+      const box = document.getElementById('bookingSuccessBox');
+      if (btn) { btn.disabled = true; btn.textContent = 'Submitting...'; }
       try {
         await MHApi.request(`/api/messes/${encodeURIComponent(messId)}/bookings`, {
           method: 'POST',
@@ -393,9 +405,17 @@
             message: document.getElementById('bMsg').value.trim(),
           })
         });
-        MHUI.showToast('Booking request submitted successfully.', 'success');
-        e.target.reset();
-      } catch (err) { MHUI.showToast(err.message || 'Failed to submit booking request.', 'error'); }
+        MHUI.showToast('Booking request sent to owner!', 'success');
+        document.getElementById('bMsg').value = '';
+        if (box) {
+          box.style.display = 'block';
+          box.innerHTML = `<div class="alert success">Booking request sent to the mess owner! You can track its status in your <a class="inline-link" href="student-dashboard.html">Student Dashboard</a>.</div>`;
+        }
+      } catch (err) {
+        MHUI.showToast(err.message || 'Failed to submit booking request.', 'error');
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = 'Submit Booking Request'; }
+      }
     });
   }
 

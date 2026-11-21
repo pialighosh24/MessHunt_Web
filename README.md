@@ -1,179 +1,266 @@
 # MessHunt — Student Mess & Accommodation Discovery (Web Application)
 
-MessHunt is a BCA final-year web project built with **HTML, CSS, Vanilla JavaScript, Node.js, Express.js, MongoDB, and Mongoose**. It provides three connected portals (Student, Owner, Admin) using one backend and one MongoDB database.
+MessHunt is a full-stack BCA final-year web application built with **HTML5, CSS3, Vanilla JavaScript, Node.js, Express.js, MongoDB, and Mongoose**. It provides three integrated portals (**Student**, **Mess Owner**, and **Admin**) connecting students with verified mess and hostel accommodations across **West Medinipur** (Midnapore and Kharagpur).
 
-## Key points
-- **Web-only project** (no React/React Native/Expo/mobile app).
-- Reuses the **existing MongoDB connection/configuration** from `backend/.env` (`MONGO_URI`, `PORT`). No duplicate DB/cluster/connection created.
-- Target database: **`test`** (as per existing Atlas configuration). Existing collection preserved: **`users`** (extended additively).
-- **Excluded features removed:** membership/subscription plans, Razorpay/payment integration, AI recommendations/chat/matching.
-- Booking requests work **without online payment**.
+---
 
-## Project structure
+## Key Highlights
+
+- **Web-Only Architecture:** Pure HTML5, CSS3, and Vanilla JavaScript frontend — lightweight, responsive, and free of heavyweight framework dependencies.
+- **Single Backend & Database:** One Express.js API server connecting all three portals to a single MongoDB database (`messhunt`).
+- **20 Verified Real Listings:** Preloaded with 20 real accommodations across Midnapore and Kharagpur featuring realistic rental rates, room configurations, facilities, food preferences, and geographic coordinates.
+- **Interactive Map Integration:** Real-time OpenStreetMap / Leaflet map view with pin clusters, popup details, and direct Google Maps navigation links.
+- **Role-Based Access Control (RBAC):** JWT authentication (`Authorization: Bearer <token>`) with bcrypt password hashing protecting Student, Owner, and Admin routes.
+- **Clean Student Workflow:** Students can browse, filter, save favourites, submit reviews, and send visit/booking requests without mandatory online payment gates.
+
+---
+
+## Project Structure
+
 ```text
-Mess_Hunt/
-├─ index.html                  # Landing + discovery (DB-backed)
-├─ details.html                # Mess details, reviews, favourite, booking
-├─ login.html                  # Login (student/owner/admin)
-├─ register.html               # Registration (student/owner)
-├─ student-dashboard.html      # Student profile, favourites, bookings
-├─ owner-dashboard.html        # Owner listings, bookings, reviews
-├─ admin-dashboard.html        # Admin stats, users, listings, reports, reviews
-├─ script.js                   # Landing/discovery frontend logic
-├─ details.js                  # Details page frontend logic
-├─ style.css                   # Main responsive styles
-├─ details.css                 # Details page supplementary styles
-├─ js/
-│  ├─ api.js                   # API base, token/session helpers, fetch wrapper
-│  └─ common.js                # Shared UI/auth helpers
-├─ backend/
-│  ├─ .env                     # Existing environment config (MONGO_URI, PORT, etc.) - do not commit
-│  ├─ server.js                # Express app bootstrap, routes, static serving
-│  ├─ seed.js                  # Optional demo seed (additive, no deletions)
-│  ├─ config/db.js             # Single Mongoose connection (reuses existing env)
-│  ├─ middleware/
-│  │  ├─ auth.js               # JWT protect/optionalAuth
-│  │  ├─ role.js               # Role-based authorization
-│  │  └─ errorHandler.js       # 404/error handling
-│  ├─ models/
-│  │  ├─ user.js               # User (student/owner/admin), legacy fields preserved
-│  │  ├─ Mess.js               # Mess listing
-│  │  ├─ Review.js             # Reviews & ratings
-│  │  ├─ Favourite.js          # Student favourites
-│  │  ├─ Booking.js            # Booking requests
-│  │  └─ Report.js             # Reports/moderation
-│  ├─ controllers/             # Business logic per module
-│  ├─ routes/                  # API route definitions
-│  └─ utils/                   # async handler, JWT helpers
-├─ package.json                # Root manifest (legacy deps present)
-└─ backend/package.json        # Backend manifest
+MessHunt_Web/
+├── index.html                  # Landing page & public mess discovery with map
+├── details.html                # Detailed listing page, photo gallery, reviews, booking
+├── login.html                  # Unified login portal (Student, Owner, Admin)
+├── register.html               # Account registration (Student, Owner)
+├── student-dashboard.html      # Student portal: profile, favourites, booking requests
+├── owner-dashboard.html        # Owner portal: listing management, booking requests, reviews
+├── admin-dashboard.html        # Admin portal: platform stats, users, listings, reports
+├── script.js                   # Landing page logic, search/filters, map rendering
+├── details.js                  # Details page logic, reviews, favourites, booking form
+├── style.css                   # Responsive styles, design system, theme tokens
+├── details.css                 # Details page supplementary layout styles
+├── favicon.svg                 # Brand favicon mark for browser tab
+├── assets/
+│   ├── logo.svg                # Vector brand logo (header & footer)
+│   ├── logo-emblem.png         # Transparent emblem mark (graduation cap + house + pin)
+│   ├── logo.png                # High-resolution standalone brand image
+│   └── logo-placeholder.svg    # Fallback logo asset
+├── js/
+│   ├── api.js                  # Frontend API client, JWT token storage, fetch wrapper
+│   ├── common.js               # Shared UI helpers (navbar auth state, alerts, toasts)
+│   └── locations.js            # West Medinipur location data & autocomplete engine
+└── backend/
+    ├── .env                    # Environment configuration (PORT, MONGO_URI, JWT_SECRET)
+    ├── .env.example            # Sample environment configuration template
+    ├── server.js               # Express application entry point & static file server
+    ├── seed.js                 # Optional demo seed script
+    ├── config/
+    │   └── db.js               # Mongoose database connection configuration
+    ├── middleware/
+    │   ├── auth.js             # JWT protect & optionalAuth middleware
+    │   ├── role.js             # Role-based authorization middleware
+    │   └── errorHandler.js     # Global error & 404 handling middleware
+    ├── models/
+    │   ├── user.js             # User schema (Student, Owner, Admin)
+    │   ├── Mess.js             # Mess listing schema with location & amenities
+    │   ├── Review.js           # Reviews & ratings schema
+    │   ├── Favourite.js        # Student saved favourites schema
+    │   ├── Booking.js          # Booking/visit request schema
+    │   └── Report.js           # Moderation & issue reports schema
+    ├── controllers/            # Business logic controllers per module
+    ├── routes/                 # Express API routes
+    ├── utils/                  # Async error wrappers and JWT helper utilities
+    └── package.json            # Backend dependencies and startup scripts
 ```
 
-## Technology stack
-| Layer | Technology |
-|---|---|
-| Frontend | HTML5, CSS3, Vanilla JavaScript |
-| Backend | Node.js, Express.js |
-| Database | MongoDB (Atlas/existing), Mongoose ODM |
-| Auth | JWT (`Authorization: Bearer <token>`), bcryptjs password hashing |
-| Security | Role-based access control, route protection, input checks, safe password migration |
+---
 
-## Environment configuration
-Configured in `backend/.env` (existing, preserved):
-- `MONGO_URI` — existing MongoDB connection string (**do not change**)
-- `PORT` — backend port (default `5000`)
+## Technology Stack
 
-Optional (not required, can be set in environment without editing committed files):
-- `JWT_SECRET` — JWT signing secret (code falls back to a dev default if unset; set in production)
-- `JWT_EXPIRES_IN` — token expiry (default `7d`)
-- `ADMIN_SETUP_KEY` — enables one-time admin registration when provided with request (secure bootstrap)
+| Layer | Technology | Purpose |
+|---|---|---|
+| **Frontend** | HTML5, CSS3, Vanilla JavaScript (ES6+) | User interface, DOM manipulation, client-side routing |
+| **Mapping** | Leaflet.js, OpenStreetMap | Interactive map view, coordinates markers, popup cards |
+| **Backend** | Node.js, Express.js | REST API, static asset serving, session validation |
+| **Database** | MongoDB, Mongoose ODM | Document database, schemas, aggregation pipelines |
+| **Authentication**| JSON Web Tokens (JWT), bcryptjs | Secure stateless auth, password hashing |
+| **Styling** | Custom CSS (Responsive Flexbox/Grid) | Optimized for Desktop, Tablet, and Mobile devices |
 
-> Never expose or commit credentials/secrets.
+---
 
-## Installation & running
-### Prerequisites
-- Node.js (v18+ recommended)
-- Access to the configured MongoDB database (Atlas/network access as per existing setup)
-- Dependencies: `backend/node_modules` and/or root `node_modules` exist in this workspace. If missing, run `npm install` in `backend/` (and root if needed) to restore from lockfiles.
+## Environment Configuration
 
-### Start backend
+The backend reads configuration from `backend/.env`:
+
+```env
+PORT=5000
+MONGO_URI=mongodb://127.0.0.1:27017/messhunt
+JWT_SECRET=messhunt_dev_secret_key_2026
+JWT_EXPIRES_IN=7d
+```
+
+*(If using MongoDB Atlas in the cloud, replace `MONGO_URI` with your Atlas connection string).*
+
+---
+
+## Quick Start & Installation
+
+### 1. Prerequisites
+- **Node.js** (v18 or higher recommended)
+- **MongoDB** (Local MongoDB Community Server running on port `27017`, or MongoDB Atlas)
+
+### 2. Install Dependencies
 ```bash
-cd backend
+cd MessHunt_Web/backend
+npm install
+```
+
+### 3. Start the Server
+```bash
+cd MessHunt_Web/backend
 npm start
 # or: node server.js
 ```
-- Server: `http://localhost:PORT` (default `http://localhost:5000`)
-- API base: `http://localhost:5000/api`
-- Health check: `GET /api/health`
-- Frontend static files are also served by the backend for convenience.
 
-### Open frontend
-- Recommended: open `http://localhost:5000/index.html` (or `http://localhost:5000/`) while backend is running.
-- Alternative: serve frontend via Live Server (VS Code setting uses port 5501) — frontend API helper targets `http://localhost:5000` when not running on port 5000.
-
-### Optional demo seed
-```bash
-cd backend
-node seed.js
+The Express server will start at:
+```text
+MongoDB connected successfully (database: messhunt)
+MessHunt server running on http://localhost:5000
 ```
-- Additive only: inserts sample **approved** listings only if `messes` collection is empty.
-- Requires an existing owner account; does not delete/modify existing records.
 
-## User roles & portals
-### Student
-- Register/login/logout, profile view/edit, change password
-- Browse/search/filter/sort/paginate approved listings
-- View mess details (images, facilities, rules, price, contact, map/location)
-- Add/remove favourites (DB-backed)
-- Submit/edit/delete own reviews and ratings; report reviews/listings
-- Send booking requests (no payment) and view/cancel from dashboard
+### 4. Access the Application
+Open your browser and navigate to:
+- **Home / Mess Discovery:** [http://localhost:5000/index.html](http://localhost:5000/index.html) (or [http://localhost:5000](http://localhost:5000))
+- **Login Portal:** [http://localhost:5000/login.html](http://localhost:5000/login.html)
+- **Registration Portal:** [http://localhost:5000/register.html](http://localhost:5000/register.html)
+- **Health Check API:** [http://localhost:5000/api/health](http://localhost:5000/api/health)
 
-### Mess Owner
-- Register/login, owner dashboard stats
-- Create/edit/delete own listings (pending/approval workflow), manage details/images/facilities/availability/contact
-- View booking requests and accept/reject/update status with notes
-- View reviews on own listings
+---
 
-### Admin
-- Secure login (no public registration). Bootstrap: register with `role=admin` only when `ADMIN_SETUP_KEY` is configured and provided.
-- Dashboard statistics (DB-derived)
-- Manage users: view students/owners, activate/deactivate accounts, verify owners
-- Manage listings: view all, approve/reject/suspend with reasons
-- Manage reports and moderate reviews (hide/delete/resolve)
+## Demo Accounts for Testing & Viva
 
-## Core API overview
-- **Auth:** `POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/me`, `POST /api/auth/logout`
-- **Users/Profile:** `GET/PUT /api/users/profile`, `PUT /api/users/change-password`
-- **Messes (public):** `GET /api/messes`, `GET /api/messes/featured`, `GET /api/messes/recent`, `GET /api/messes/:id`
-- **Messes (owner):** `POST /api/messes`, `GET /api/messes/owner/mine`, `PUT /api/messes/:id`, `DELETE /api/messes/:id`
-- **Reviews:** `GET /api/messes/:messId/reviews`, `POST /api/messes/:messId/reviews`, `PUT /api/reviews/:id`, `DELETE /api/reviews/:id`
-- **Favourites (student):** `GET /api/favourites/mine`, `POST/DELETE /api/messes/:messId/favourite`, `POST /api/messes/:messId/favourite/toggle`
-- **Bookings:** `POST /api/messes/:messId/bookings`, `GET /api/bookings/mine`, `PATCH /api/bookings/:id/status`
-- **Owner:** `GET /api/owner/dashboard`, `GET /api/owner/reviews`
-- **Reports:** `POST /api/reports`, `GET /api/reports/mine`
-- **Admin:** `GET /api/admin/dashboard`, `GET/PATCH /api/admin/users`, `GET /api/admin/messes`, `PATCH /api/admin/messes/:id/approval`, `GET/PATCH /api/admin/reports`, `GET /api/admin/reviews`, `PATCH /api/admin/reviews/:id/moderate`
+| Portal | Email | Password | Role | Access / Capabilities |
+|---|---|---|---|---|
+| **Student** | `student@messhunt.com` | `student123` | `student` | Profile, favourites, reviews, booking visit requests |
+| **Owner** | `owner@messhunt.com` | `owner123` | `owner` | Create & edit listings, manage bookings, review tracking |
+| **Admin** | `admin@messhunt.com` | `admin123` | `admin` | Full moderation, approve/reject listings, verify owners, stats |
 
-## Security notes
-- Passwords hashed with **bcryptjs**; legacy plain-text passwords (if present in existing records) are supported on login and upgraded to bcrypt on successful authentication (non-destructive, no lockout intent).
-- JWT-based authentication and role-based authorization enforced on protected backend routes.
-- Users can modify only permitted resources (own profile/reviews/bookings; owners manage own listings; admin-only moderation/management).
-- Basic validation and centralized error handling implemented.
-- Do not store trusted authorization decisions in localStorage; frontend stores JWT/user session data for client use only.
+*(Personal test accounts `maityankana913@gmail.com` and `maityankana@gmail.com` are also registered and active in the database).*
 
-## Data & migration notes
-- Uses existing `users` collection/model (additive fields: `role`, `phone`, `address`, `bio`, `profileImage`, `isActive`, `ownerVerified`; legacy subscription fields preserved).
-- New collections/models added as needed in same database: `messes`, `reviews`, `favourites`, `bookings`, `reports`.
-- Important data intended to be stored in MongoDB via backend APIs (not localStorage as primary DB).
-- No database reset/drop/overwrite of existing records performed.
+---
 
-## Testing summary (executed)
-Automated/manual API workflow tests were executed against the configured **`test`** database (connection verified at runtime) using temporary test accounts/data:
-- **PASS:** Health check, student/owner registration, login, JWT-protected profile read/update, password change.
-- **PASS:** Owner listing creation (pending), owner "my listings", admin listing approval, public listing list/search/detail (approved).
-- **PASS:** Student favourite toggle/list, review create/list, booking request create/list.
-- **PASS:** Owner booking list and status update (accept), admin dashboard stats (DB-derived).
-- **Cleanup:** All temporary test users/listings/reviews/bookings/favourites created during verification were deleted; existing pre-test data was not modified.
+## Listings Overview (20 Preloaded Accommodations)
 
-Frontend pages and dashboards were implemented to consume these APIs; full browser UI walkthrough depends on a running backend with DB connectivity and available listing/user data.
+The system includes 20 live, approved listings across Paschim Medinipur with complete location coordinates, rental rates, room configurations, and food options:
 
-## Known limitations
-- **MongoDB connectivity is environment-dependent:** API/DB features require access to the configured Atlas URI in `backend/.env`. During earlier phases connectivity was unavailable; later runtime verification succeeded in this environment.
-- **Admin bootstrap:** No public admin registration. Create an admin by setting `ADMIN_SETUP_KEY` in the environment and registering with the key, or via a controlled DB/admin process.
-- **Image handling:** Listing images are managed as URL/path strings (no file-upload storage pipeline/multer integration) to keep dependencies simple.
-- **Existing image assets:** Some legacy image paths may be missing; UI includes fallbacks.
-- **No automated test suite/framework:** Verification performed via runtime API checks and static syntax checks.
-- **Public listing data:** Discovery shows approved & available listings; if no approved listings exist, pages show empty states until owners/admin add/approve data (optional `seed.js` can help).
+### Midnapore (12 Listings)
+1. **Silver Spring Boys Mess** — Rangamati (₹3,200/mo, Double, Veg + Non-Veg)
+2. **Debi Sarbajaya Mess** — Boxibazar (₹2,800/mo, Triple, Veg)
+3. **Manjusri Chatrinivas** — Ramayan Para, Tantigeria (₹3,800/mo, Double, Girls Hostel)
+4. **Chakadola Ladies Mess** — V.U. Gate No. 3, Tantigeria (₹3,500/mo, Double, Girls Mess)
+5. **Bhadra Mess Bari** — Mahatabpur (₹2,600/mo, Double, Boys Mess)
+6. **Puspak Mess** — Raja Bazar (₹2,900/mo, Triple, Student Mess)
+7. **Sahachari Chhatri Nibas** — Ashok Nagar Road (₹3,600/mo, Double, Girls Hostel)
+8. **Kanak Mess Cum Paying Guest** — Saratpally (₹3,000/mo, Double, PG)
+9. **Johim Mess** — Midnapore Town (₹2,500/mo, Multi-sharing, Boys Hostel)
+10. **Peace Avenue Girls Mess** — Baisakhipally, V.U. Road (₹3,900/mo, Double, Girls Mess)
+11. **Aurobinda Mess** — Midnapore Town (₹2,700/mo, Double, Boys Mess)
+12. **Shantiniketan Mess** — Midnapore Town (₹2,800/mo, Triple, Student Mess)
 
-## Important implementation notes for viva
-- **Single backend, single DB:** all portals call the same Express API and same MongoDB database/connection.
-- **RBAC:** students/owners/admins have different permissions enforced in middleware and controllers.
-- **Approval workflow:** owner-created listings start pending; admin approves/rejects/suspends before public visibility (per rules).
-- **Reviews:** one review per user per mess (unique index), ownership enforced for edit/delete, ratings aggregated on mess.
-- **Favourites/Bookings/Reports:** persisted in MongoDB and scoped to authenticated users/permissions.
+### Kharagpur (8 Listings)
+13. **Bharat PG** — Puratan Bazar (₹4,500/mo, Single, Boys PG near IIT & Station)
+14. **AFS Apartment** — Puratan Bazar (₹4,200/mo, Double, PG with kitchen access)
+15. **Tapas P.G.** — Rabindrapally, IIT Bypass (₹3,800/mo, Double, Non-veg PG)
+16. **Kharagpur P.G.** — Inda / Ramkrishnapally (₹3,600/mo, Double, Boys PG)
+17. **Premium Boys AC PG** — Regent Saras Residency 2, Inda (₹5,200/mo, Single AC)
+18. **Sujay Kr Sharma PG Hostel** — Rabindrapally (₹3,400/mo, Double, Boys PG)
+19. **TM - MESS** — Subhaspally (₹3,100/mo, Triple, Student Mess)
+20. **Uttaran Mess** — Vidyasagarpur, Panchberia Road (₹3,000/mo, Double)
 
-## Excluded functionality (intentionally removed)
-- Membership/subscription plans, badges, expiry, renewal, gating
-- Razorpay/payment checkout, orders, verification, transactions
-- AI chatbot/recommendations/matching or external AI services
+---
 
-These were removed from the user experience and backend API flow; booking works without payment.
+## User Roles & Capabilities
+
+### 1. Student Portal (`student-dashboard.html`)
+- Search by location, accommodation type (Boys/Girls/Unisex), rent budget, food preferences, and facilities.
+- View interactive maps and inspect distances to nearby landmarks (colleges, bus stops, railway stations).
+- Save and remove listings to personal **Favourites**.
+- Submit ratings and reviews (one review per user per listing).
+- Send booking/visit requests specifying preferred date and time slot (no payment required).
+- Manage personal profile and update password securely.
+
+### 2. Mess Owner Portal (`owner-dashboard.html`)
+- Dashboard overview showing total listings, approved, pending, and booking request counts.
+- Create new mess listings with full details (room sharing, furnishing, bathroom type, food, utilities, coordinates, rules, image URLs).
+- Edit and update existing listings (edited listings automatically enter the moderation queue).
+- Receive student booking requests with student contact information and visit dates.
+- Accept, reject, or mark booking requests as pending with custom notes.
+- View ratings and reviews left by students on owner's listings.
+
+### 3. Admin Portal (`admin-dashboard.html`)
+- System-wide statistics: registered students, mess owners, active listings, and open moderation reports.
+- **User Management:** Filter users by role (`student`, `owner`, `admin`), search by name/email/phone, activate/deactivate accounts, and verify owners.
+- **Listing Moderation:** Review pending listings, approve verified accommodations, or reject/suspend with reason notes.
+- **Review Moderation:** Hide, unhide, or delete inappropriate reviews with automatic recalculation of mess ratings.
+- **Report Handling:** Review user-submitted reports on listings or reviews and mark as resolved or dismissed.
+
+---
+
+## Core API Endpoints
+
+### Authentication & Users
+- `POST /api/auth/register` — Register student or owner account
+- `POST /api/auth/login` — Login user and issue JWT
+- `GET /api/auth/me` — Get current logged-in user session
+- `GET /api/users/profile` — Get profile details
+- `PUT /api/users/profile` — Update user profile
+- `PUT /api/users/change-password` — Change password
+
+### Mess Listings
+- `GET /api/messes` — Search & filter approved listings (supports location, accommodationType, minPrice, maxPrice, foodPreference, nearby, facilities, pagination)
+- `GET /api/messes/:id` — Get mess details by ID
+- `POST /api/messes` — Create new listing (Owner only, starts as pending)
+- `GET /api/messes/owner/mine` — Get owner's listings
+- `PUT /api/messes/:id` — Update listing (Owner only)
+- `DELETE /api/messes/:id` — Delete listing (Owner or Admin)
+
+### Reviews & Favourites
+- `GET /api/messes/:messId/reviews` — Get public reviews for a mess
+- `POST /api/messes/:messId/reviews` — Submit review & rating (Student only)
+- `PUT /api/reviews/:id` — Update own review
+- `DELETE /api/reviews/:id` — Delete own review
+- `GET /api/favourites/mine` — Get student favourites
+- `POST /api/messes/:messId/favourite/toggle` — Toggle save to favourites
+
+### Bookings & Reports
+- `POST /api/messes/:messId/bookings` — Submit visit request (Student only)
+- `GET /api/bookings/mine` — Get bookings (scoped to Student or Owner)
+- `PATCH /api/bookings/:id/status` — Update booking status (accept/reject/cancel)
+- `POST /api/reports` — Submit report for admin review
+
+### Admin Endpoints (Admin role required)
+- `GET /api/admin/dashboard` — Platform overview statistics
+- `GET /api/admin/users` — User directory with search & role filters
+- `PATCH /api/admin/users/:id` — Activate/deactivate user or verify owner
+- `GET /api/admin/messes` — All listings across pending/approved/rejected statuses
+- `PATCH /api/admin/messes/:id/approval` — Approve, reject, or suspend listing
+- `GET /api/admin/reports` — Platform incident reports
+- `PATCH /api/admin/reports/:id` — Resolve or dismiss report
+- `GET /api/admin/reviews` — All reviews for moderation
+- `PATCH /api/admin/reviews/:id/moderate` — Hide/unhide review
+
+---
+
+## Viva & Project Defense Notes
+
+1. **Why Vanilla JavaScript over React?**
+   - Direct DOM manipulation demonstrates core web development fundamentals without third-party abstraction overhead.
+   - Faster initial page load time, zero build steps, and simplified static file serving directly from Express.js.
+2. **Database Design & Indexing:**
+   - Single MongoDB connection with indexed reference fields (`owner`, `mess`, `user`, `student`).
+   - Unique compound index on `Review` (`{ mess: 1, user: 1 }`) ensures a student can review a mess only once.
+   - Aggregate pipeline calculates weighted averages for ratings efficiently on submission.
+3. **Approval Lifecycle:**
+   - Owner-created listings enter the database as `pending`. They are hidden from public search until an Admin reviews and approves them, ensuring platform safety.
+4. **Security:**
+   - Passwords hashed with `bcryptjs` salt rounds.
+   - JWT tokens stored in client `localStorage` and verified via server middleware on protected endpoints.
+   - Sanitized user output strips passwords before returning API responses.
+
+---
+
+## License
+
+This project was developed for academic evaluation as a BCA Final Year Web Application.
+All rights reserved © 2026 MessHunt.

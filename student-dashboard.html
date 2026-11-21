@@ -192,8 +192,20 @@
           } catch(e){ alert(e.message || 'Failed to update password'); }
         });
 
-        document.getElementById('refreshFavs').addEventListener('click', loadFavourites);
-        document.getElementById('refreshBookings').addEventListener('click', loadBookings);
+        document.getElementById('refreshFavs').addEventListener('click', async () => {
+          const btn = document.getElementById('refreshFavs');
+          if (btn) { btn.disabled = true; btn.textContent = 'Refreshing...'; }
+          await loadFavourites();
+          if (btn) { btn.disabled = false; btn.textContent = 'Refresh'; }
+          MHUI.showToast('Favourites refreshed', 'success');
+        });
+        document.getElementById('refreshBookings').addEventListener('click', async () => {
+          const btn = document.getElementById('refreshBookings');
+          if (btn) { btn.disabled = true; btn.textContent = 'Refreshing...'; }
+          await loadBookings();
+          if (btn) { btn.disabled = false; btn.textContent = 'Refresh'; }
+          MHUI.showToast('Bookings refreshed', 'success');
+        });
       });
     })();
   </script>
