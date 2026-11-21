@@ -17,7 +17,7 @@ const emptyForm = {
   selfCooking: 'Not specified', kitchenAccess: 'Not specified', cookingGas: 'Not specified', inductionCooking: 'Not specified',
   foodIncluded: 'Not specified', foodPreference: 'Not specified', breakfast: 'Not specified', lunch: 'Not specified', dinner: 'Not specified',
   waterSupply: 'Not specified', electricityCharges: 'Not specified', wifi: 'Not specified', laundry: 'Not specified', parking: 'Not specified', studyTable: 'Not specified',
-  facilitiesExtra: '', nearCollege: '', nearBus: '', nearRailway: '', phone: '', whatsapp: '', email: '', mapUrl: '', lat: '', lng: '', rules: '', images: ''
+  facilitiesExtra: '', nearCollege: '', nearBus: '', nearRailway: '', ownerName: '', phone: '', whatsapp: '', email: '', mapUrl: '', lat: '', lng: '', rules: '', images: ''
 }
 
 function listingToForm(m) {
@@ -36,7 +36,7 @@ function listingToForm(m) {
     wifi: has('wi-fi') || has('wifi') ? 'Available' : 'Not specified', laundry: has('laundry') ? 'Available' : 'Not specified',
     parking: has('parking') ? 'Available' : 'Not specified', studyTable: has('study') ? 'Available' : 'Not specified',
     facilitiesExtra: arrToCsv(extra), nearCollege: m.nearby?.college || '', nearBus: m.nearby?.busStand || '', nearRailway: m.nearby?.railwayStation || '',
-    phone: m.contactPhone || '', whatsapp: m.whatsapp || '', email: m.contactEmail || '', mapUrl: m.location?.mapUrl || '',
+    ownerName: m.ownerName || '', phone: m.contactPhone || '', whatsapp: m.whatsapp || '', email: m.contactEmail || '', mapUrl: m.location?.mapUrl || '',
     lat: m.location?.lat ?? '', lng: m.location?.lng ?? '', rules: arrToCsv(m.rules), images: arrToCsv(m.images)
   }
 }
@@ -55,7 +55,7 @@ function formToPayload(f) {
     breakfast: f.breakfast, lunch: f.lunch, dinner: f.dinner, waterSupply: f.waterSupply, electricityCharges: f.electricityCharges,
     facilities: Array.from(facs),
     nearby: { college: f.nearCollege.trim(), busStand: f.nearBus.trim(), railwayStation: f.nearRailway.trim() },
-    contactPhone: f.phone.trim(), whatsapp: f.whatsapp.trim(), contactEmail: f.email.trim(),
+    ownerName: (f.ownerName || '').trim(), contactPhone: f.phone.trim(), whatsapp: f.whatsapp.trim(), contactEmail: f.email.trim(),
     lat: f.lat !== '' ? Number(f.lat) : null, lng: f.lng !== '' ? Number(f.lng) : null, mapUrl: f.mapUrl.trim(),
     rules: csvToArr(f.rules), images: csvToArr(f.images),
   }
@@ -65,14 +65,24 @@ function formToPayload(f) {
   return payload
 }
 
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve({ name: file.name, dataUrl: reader.result })
+    reader.onerror = () => reject(new Error('Failed to read file: ' + file.name))
+    reader.readAsDataURL(file)
+  })
+}
+
 async function uploadFilesToServer(files) {
-  const fd = new FormData()
-  Array.from(files).forEach(file => fd.append('images', file))
-  const token = MHApi.getToken()
-  const res = await fetch(`${MHApi.API_BASE}/api/uploads/images`, { method: 'POST', headers: token ? { Authorization: `Bearer ${token}` } : {}, body: fd })
-  const data = await res.json().catch(() => ({}))
-  if (!res.ok) throw new Error(data.message || 'Upload failed')
-  return (data.data || []).map(item => item.url)
+  const filesArr = Array.from(files || [])
+  if (!filesArr.length) return []
+  const encoded = await Promise.all(filesArr.map(readFileAsDataUrl))
+  const res = await MHApi.request('/api/owner/upload-image', {
+    method: 'POST',
+    body: JSON.stringify({ files: encoded })
+  })
+  return (res.urls || []).map(u => u.startsWith('http') || u.startsWith('/') ? u : `/${u}`)
 }
 
 export default function OwnerDashboard() {
@@ -289,6 +299,7 @@ export default function OwnerDashboard() {
 
           <h3 style={{ marginTop: '16px' }}>Contact & Location</h3>
           <div className="form-grid">
+            <div><label>Owner / Proprietor Name</label><input id="mOwnerName" placeholder="e.g. Goutam Sarkar" value={form.ownerName} onChange={e => setF('ownerName', e.target.value)} /></div>
             <div><label>Contact Phone</label><input id="mPhone" value={form.phone} onChange={e => setF('phone', e.target.value)} /></div>
             <div><label>WhatsApp</label><input id="mWhatsapp" value={form.whatsapp} onChange={e => setF('whatsapp', e.target.value)} /></div>
             <div><label>Contact Email</label><input id="mEmail" type="email" value={form.email} onChange={e => setF('email', e.target.value)} /></div>

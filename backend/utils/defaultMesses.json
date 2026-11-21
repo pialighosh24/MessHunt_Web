@@ -1,0 +1,1195 @@
+[
+  {
+    "name": "Debi Sarbajaya Mess",
+    "description": "Student Mess in Boxibazar, Patnabazar, Midnapore (PIN 721101). Details collected from public business listings; owner to confirm rent, facilities and food details.",
+    "address": "Boxibazar, Patnabazar, Midnapore - 721101",
+    "area": "Boxibazar",
+    "city": "Midnapore",
+    "location": {
+      "lat": 22.4172,
+      "lng": 87.3282,
+      "mapUrl": "https://www.google.com/maps/search/?api=1&query=Debi%20Sarbajaya%20Mess%2C%20Boxibazar%2C%20Patnabazar%2C%20Midnapore%20-%20721101%2C%20Midnapore%2C%20West%20Bengal"
+    },
+    "price": 2800,
+    "securityDeposit": 2500,
+    "roomType": "Shared",
+    "roomSharing": "Triple",
+    "furnishing": "Furnished",
+    "bathroomType": "Common bathroom",
+    "gender": "Co-ed",
+    "accommodationType": "Unisex",
+    "foodType": "Veg",
+    "foodAvailable": true,
+    "foodIncluded": "Charged separately",
+    "foodPreference": "Veg",
+    "breakfast": "Available",
+    "lunch": "Available",
+    "dinner": "Available",
+    "selfCooking": "Available",
+    "kitchenAccess": "Not specified",
+    "cookingGas": "Not specified",
+    "inductionCooking": "Not specified",
+    "electricityCharges": "Not specified",
+    "waterSupply": "Not specified",
+    "facilities": [
+      "Wi-Fi",
+      "Water Supply",
+      "Study Table",
+      "RO Water"
+    ],
+    "nearby": {
+      "college": "Midnapore College",
+      "busStand": "Patnabazar / Kotwali Stop",
+      "railwayStation": "Midnapore Railway Station"
+    },
+    "rules": [
+      "Visitors allowed in common room only",
+      "Keep rooms clean"
+    ],
+    "contactPhone": "9564276556",
+    "contactEmail": "",
+    "whatsapp": "9564276556",
+    "images": [
+      "/uploads/messes/Screenshot-2026-11-21-221908-1795279762134-1.png",
+      "/uploads/messes/Screenshot-2026-11-21-222444-1795280104466-1.png"
+    ],
+    "availabilityStatus": "available",
+    "approvalStatus": "approved",
+    "rejectionReason": "",
+    "averageRating": 0,
+    "reviewCount": 0,
+    "ownerName": "Satyajit Kar"
+  },
+  {
+    "name": "Manjusri Chatrinivas",
+    "description": "Girls Hostel in Ramayan Para, Tantigeria, Midnapore (PIN 721102). Details collected from public business listings; owner to confirm rent, facilities and food details.",
+    "address": "Ramayan Para, Tantigeria, Midnapore - 721102",
+    "area": "Tantigeria",
+    "city": "Midnapore",
+    "location": {
+      "lat": 22.4304,
+      "lng": 87.3025,
+      "mapUrl": "https://www.google.com/maps/search/?api=1&query=Manjusri%20Chatrinivas%2C%20Ramayan%20Para%2C%20Tantigeria%2C%20Midnapore%20-%20721102%2C%20Midnapore%2C%20West%20Bengal"
+    },
+    "price": 3800,
+    "securityDeposit": 3500,
+    "roomType": "Shared",
+    "roomSharing": "Double",
+    "furnishing": "Furnished",
+    "bathroomType": "Attached bathroom",
+    "gender": "Girls",
+    "accommodationType": "Girls",
+    "foodType": "Both",
+    "foodAvailable": true,
+    "foodIncluded": "Included in rent",
+    "foodPreference": "Both",
+    "breakfast": "Available",
+    "lunch": "Available",
+    "dinner": "Available",
+    "selfCooking": "Not available",
+    "kitchenAccess": "Not specified",
+    "cookingGas": "Not specified",
+    "inductionCooking": "Not specified",
+    "electricityCharges": "Not specified",
+    "waterSupply": "Not specified",
+    "facilities": [
+      "Wi-Fi",
+      "CCTV",
+      "Attached bathroom",
+      "RO Water",
+      "Study Table"
+    ],
+    "nearby": {
+      "college": "Vidyasagar University",
+      "busStand": "Tantigeria Bus Stand",
+      "railwayStation": "Midnapore Railway Station"
+    },
+    "rules": [
+      "Entry deadline 8:30 PM",
+      "No outside guests in rooms"
+    ],
+    "contactPhone": "8016801695",
+    "contactEmail": "",
+    "whatsapp": "8016801695",
+    "images": [
+      "/uploads/messes/Screenshot-2026-11-21-221824-1795279715034-1.png"
+    ],
+    "availabilityStatus": "available",
+    "approvalStatus": "approved",
+    "rejectionReason": "",
+    "averageRating": 0,
+    "reviewCount": 0,
+    "ownerName": "Manjusri Chatrinivas (Proprietor)"
+  },
+  {
+    "name": "Chakadola Ladies Mess",
+    "description": "Girls Mess in V.U. Gate No. 3, Tantigeria, Midnapore (PIN 721102). Details collected from public business listings; owner to confirm rent, facilities and food details.",
+    "address": "V.U. Gate No. 3, Tantigeria, Midnapore - 721102",
+    "area": "Tantigeria",
+    "city": "Midnapore",
+    "location": {
+      "lat": 22.4316,
+      "lng": 87.2994,
+      "mapUrl": "https://www.google.com/maps/search/?api=1&query=Chakadola%20Ladies%20Mess%2C%20V.U.%20Gate%20No.%203%2C%20Tantigeria%2C%20Midnapore%20-%20721102%2C%20Midnapore%2C%20West%20Bengal"
+    },
+    "price": 3500,
+    "securityDeposit": 3000,
+    "roomType": "Shared",
+    "roomSharing": "Double",
+    "furnishing": "Furnished",
+    "bathroomType": "Attached bathroom",
+    "gender": "Girls",
+    "accommodationType": "Girls",
+    "foodType": "Veg",
+    "foodAvailable": true,
+    "foodIncluded": "Included in rent",
+    "foodPreference": "Veg",
+    "breakfast": "Available",
+    "lunch": "Available",
+    "dinner": "Available",
+    "selfCooking": "Available",
+    "kitchenAccess": "Not specified",
+    "cookingGas": "Not specified",
+    "inductionCooking": "Not specified",
+    "electricityCharges": "Not specified",
+    "waterSupply": "Not specified",
+    "facilities": [
+      "Wi-Fi",
+      "Attached bathroom",
+      "Study Table",
+      "RO Water",
+      "CCTV"
+    ],
+    "nearby": {
+      "college": "Vidyasagar University (Gate No. 3)",
+      "busStand": "V.U. Bus Stop",
+      "railwayStation": "Midnapore Railway Station"
+    },
+    "rules": [
+      "Strict night curfew 9:00 PM",
+      "ID proof mandatory"
+    ],
+    "contactPhone": "9933792343",
+    "contactEmail": "",
+    "whatsapp": "9933792343",
+    "images": [
+      "/uploads/messes/Screenshot-2026-11-21-221557-1795279575509-1.png"
+    ],
+    "availabilityStatus": "available",
+    "approvalStatus": "approved",
+    "rejectionReason": "",
+    "averageRating": 0,
+    "reviewCount": 0,
+    "ownerName": "Chakadola Ladies Mess (Proprietor)"
+  },
+  {
+    "name": "Bhadra Mess Bari",
+    "description": "Boys Mess in Mahatabpur, Midnapore (PIN 721101). Details collected from public business listings; owner to confirm rent, facilities and food details.",
+    "address": "Mahatabpur, Midnapore - 721101",
+    "area": "Mahatabpur",
+    "city": "Midnapore",
+    "location": {
+      "lat": 22.4158,
+      "lng": 87.3195,
+      "mapUrl": "https://www.google.com/maps/search/?api=1&query=Bhadra%20Mess%20Bari%2C%20Mahatabpur%2C%20Midnapore%20-%20721101%2C%20Midnapore%2C%20West%20Bengal"
+    },
+    "price": 2600,
+    "securityDeposit": 2000,
+    "roomType": "Shared",
+    "roomSharing": "Double",
+    "furnishing": "Furnished",
+    "bathroomType": "Common bathroom",
+    "gender": "Boys",
+    "accommodationType": "Boys",
+    "foodType": "Both",
+    "foodAvailable": true,
+    "foodIncluded": "Charged separately",
+    "foodPreference": "Both",
+    "breakfast": "Available",
+    "lunch": "Available",
+    "dinner": "Available",
+    "selfCooking": "Available",
+    "kitchenAccess": "Not specified",
+    "cookingGas": "Not specified",
+    "inductionCooking": "Not specified",
+    "electricityCharges": "Not specified",
+    "waterSupply": "Not specified",
+    "facilities": [
+      "Wi-Fi",
+      "Water Supply",
+      "Study Table",
+      "Parking"
+    ],
+    "nearby": {
+      "college": "Midnapore College",
+      "busStand": "Mahatabpur / Judges Court Stop",
+      "railwayStation": "Midnapore Railway Station"
+    },
+    "rules": [
+      "No loud music after 11 PM",
+      "No smoking"
+    ],
+    "contactPhone": "8900160090",
+    "contactEmail": "",
+    "whatsapp": "8900160090",
+    "images": [
+      "/uploads/messes/Screenshot-2026-11-21-221453-1795279516340-1.png"
+    ],
+    "availabilityStatus": "available",
+    "approvalStatus": "approved",
+    "rejectionReason": "",
+    "averageRating": 0,
+    "reviewCount": 0,
+    "ownerName": "Bhadra Family (Proprietor)"
+  },
+  {
+    "name": "Sahachari Chhatri Nibas",
+    "description": "Girls Hostel in Ashok Nagar Road, Midnapore (PIN 721101). Details collected from public business listings; owner to confirm rent, facilities and food details.",
+    "address": "Ashok Nagar Road, Midnapore - 721101",
+    "area": "Ashok Nagar",
+    "city": "Midnapore",
+    "location": {
+      "lat": 22.4192,
+      "lng": 87.3178,
+      "mapUrl": "https://www.google.com/maps/search/?api=1&query=Sahachari%20Chhatri%20Nibas%2C%20Ashok%20Nagar%20Road%2C%20Midnapore%20-%20721101%2C%20Midnapore%2C%20West%20Bengal"
+    },
+    "price": 3600,
+    "securityDeposit": 3500,
+    "roomType": "Shared",
+    "roomSharing": "Double",
+    "furnishing": "Furnished",
+    "bathroomType": "Attached bathroom",
+    "gender": "Girls",
+    "accommodationType": "Girls",
+    "foodType": "Veg",
+    "foodAvailable": true,
+    "foodIncluded": "Included in rent",
+    "foodPreference": "Veg",
+    "breakfast": "Available",
+    "lunch": "Available",
+    "dinner": "Available",
+    "selfCooking": "Not available",
+    "kitchenAccess": "Not specified",
+    "cookingGas": "Not specified",
+    "inductionCooking": "Not specified",
+    "electricityCharges": "Not specified",
+    "waterSupply": "Not specified",
+    "facilities": [
+      "Wi-Fi",
+      "CCTV",
+      "Attached bathroom",
+      "RO Water",
+      "Study Table"
+    ],
+    "nearby": {
+      "college": "Midnapore College",
+      "busStand": "Ashok Nagar Bus Stop",
+      "railwayStation": "Midnapore Railway Station"
+    },
+    "rules": [
+      "Curfew at 8:30 PM",
+      "Guardian contact verified"
+    ],
+    "contactPhone": "9800301838",
+    "contactEmail": "sahacharichatrinibas@gmail.com",
+    "whatsapp": "9800301838",
+    "images": [
+      "/uploads/messes/Screenshot-2026-11-21-221412-1795279463100-1.png"
+    ],
+    "availabilityStatus": "available",
+    "approvalStatus": "approved",
+    "rejectionReason": "",
+    "averageRating": 0,
+    "reviewCount": 0,
+    "ownerName": "Goutam Sarkar"
+  },
+  {
+    "name": "Kanak Mess Cum Paying Guest",
+    "description": "PG in Saratpally, Midnapore (PIN 721101). Details collected from public business listings; owner to confirm rent, facilities and food details.",
+    "address": "Saratpally, Midnapore - 721101",
+    "area": "Saratpally",
+    "city": "Midnapore",
+    "location": {
+      "lat": 22.4198,
+      "lng": 87.3138,
+      "mapUrl": "https://www.google.com/maps/search/?api=1&query=Kanak%20Mess%20Cum%20Paying%20Guest%2C%20Saratpally%2C%20Midnapore%20-%20721101%2C%20Midnapore%2C%20West%20Bengal"
+    },
+    "price": 3000,
+    "securityDeposit": 2500,
+    "roomType": "Shared",
+    "roomSharing": "Double",
+    "furnishing": "Furnished",
+    "bathroomType": "Common bathroom",
+    "gender": "Co-ed",
+    "accommodationType": "Unisex",
+    "foodType": "Both",
+    "foodAvailable": true,
+    "foodIncluded": "Included in rent",
+    "foodPreference": "Both",
+    "breakfast": "Available",
+    "lunch": "Available",
+    "dinner": "Available",
+    "selfCooking": "Available",
+    "kitchenAccess": "Not specified",
+    "cookingGas": "Not specified",
+    "inductionCooking": "Not specified",
+    "electricityCharges": "Not specified",
+    "waterSupply": "Not specified",
+    "facilities": [
+      "Wi-Fi",
+      "RO Water",
+      "Study Table",
+      "Parking"
+    ],
+    "nearby": {
+      "college": "Midnapore College",
+      "busStand": "Saratpally Stop",
+      "railwayStation": "Midnapore Railway Station"
+    },
+    "rules": [
+      "Quiet hours after 10:30 PM"
+    ],
+    "contactPhone": "",
+    "contactEmail": "",
+    "whatsapp": "",
+    "images": [
+      "/uploads/messes/Screenshot-2026-11-21-221320-1795279412265-1.png"
+    ],
+    "availabilityStatus": "available",
+    "approvalStatus": "approved",
+    "rejectionReason": "",
+    "averageRating": 0,
+    "reviewCount": 0,
+    "ownerName": "Kanak Mess (Proprietor)"
+  },
+  {
+    "name": "Johim Mess",
+    "description": "Boys Hostel in Midnapore town, Midnapore (PIN 721101). Details collected from public business listings; owner to confirm rent, facilities and food details.",
+    "address": "Midnapore town, Midnapore - 721101",
+    "area": "Midnapore Town",
+    "city": "Midnapore",
+    "location": {
+      "lat": 22.4224,
+      "lng": 87.3218,
+      "mapUrl": "https://www.google.com/maps/search/?api=1&query=Johim%20Mess%2C%20Midnapore%20town%2C%20Midnapore%20-%20721101%2C%20Midnapore%2C%20West%20Bengal"
+    },
+    "price": 2500,
+    "securityDeposit": 2000,
+    "roomType": "Shared",
+    "roomSharing": "Multiple sharing",
+    "furnishing": "Furnished",
+    "bathroomType": "Common bathroom",
+    "gender": "Boys",
+    "accommodationType": "Boys",
+    "foodType": "Non-veg",
+    "foodAvailable": true,
+    "foodIncluded": "Charged separately",
+    "foodPreference": "Non-veg",
+    "breakfast": "Available",
+    "lunch": "Available",
+    "dinner": "Available",
+    "selfCooking": "Not available",
+    "kitchenAccess": "Not specified",
+    "cookingGas": "Not specified",
+    "inductionCooking": "Not specified",
+    "electricityCharges": "Not specified",
+    "waterSupply": "Not specified",
+    "facilities": [
+      "Wi-Fi",
+      "Water Supply",
+      "Study Table"
+    ],
+    "nearby": {
+      "college": "Midnapore Medical College & Midnapore College",
+      "busStand": "Keranitola Bus Stop",
+      "railwayStation": "Midnapore Railway Station"
+    },
+    "rules": [
+      "Gate closes at 10 PM"
+    ],
+    "contactPhone": "",
+    "contactEmail": "",
+    "whatsapp": "",
+    "images": [
+      "/uploads/messes/Screenshot-2026-11-21-221204-1795279353828-1.png"
+    ],
+    "availabilityStatus": "available",
+    "approvalStatus": "approved",
+    "rejectionReason": "",
+    "averageRating": 0,
+    "reviewCount": 0,
+    "ownerName": "Johim Mess (Proprietor)"
+  },
+  {
+    "name": "Peace Avenue Girls Mess",
+    "description": "Girls Mess in Baisakhipally, V.U. Road, Midnapore (PIN 721102). Details collected from public business listings; owner to confirm rent, facilities and food details.",
+    "address": "Baisakhipally, V.U. Road, Midnapore - 721102",
+    "area": "Baisakhipally",
+    "city": "Midnapore",
+    "location": {
+      "lat": 22.4322,
+      "lng": 87.3012,
+      "mapUrl": "https://www.google.com/maps/search/?api=1&query=Peace%20Avenue%20Girls%20Mess%2C%20Baisakhipally%2C%20V.U.%20Road%2C%20Midnapore%20-%20721102%2C%20Midnapore%2C%20West%20Bengal"
+    },
+    "price": 3900,
+    "securityDeposit": 4000,
+    "roomType": "Shared",
+    "roomSharing": "Double",
+    "furnishing": "Furnished",
+    "bathroomType": "Attached bathroom",
+    "gender": "Girls",
+    "accommodationType": "Girls",
+    "foodType": "Both",
+    "foodAvailable": true,
+    "foodIncluded": "Included in rent",
+    "foodPreference": "Both",
+    "breakfast": "Available",
+    "lunch": "Available",
+    "dinner": "Available",
+    "selfCooking": "Not available",
+    "kitchenAccess": "Not specified",
+    "cookingGas": "Not specified",
+    "inductionCooking": "Not specified",
+    "electricityCharges": "Not specified",
+    "waterSupply": "Not specified",
+    "facilities": [
+      "Wi-Fi",
+      "CCTV",
+      "Attached bathroom",
+      "RO Water",
+      "Study Table"
+    ],
+    "nearby": {
+      "college": "Vidyasagar University",
+      "busStand": "Baisakhipally / V.U. Road Stop",
+      "railwayStation": "Midnapore Railway Station"
+    },
+    "rules": [
+      "Curfew 9:00 PM",
+      "No male visitors inside"
+    ],
+    "contactPhone": "7001540634",
+    "contactEmail": "",
+    "whatsapp": "7001540634",
+    "images": [
+      "/uploads/messes/Screenshot-2026-11-21-221102-1795279275610-1.png"
+    ],
+    "availabilityStatus": "available",
+    "approvalStatus": "approved",
+    "rejectionReason": "",
+    "averageRating": 0,
+    "reviewCount": 0,
+    "ownerName": "Peace Avenue Girls Mess (Proprietor)"
+  },
+  {
+    "name": "Shantiniketan Mess",
+    "description": "Student Mess in Midnapore town, Midnapore (PIN 721101). Details collected from public business listings; owner to confirm rent, facilities and food details.",
+    "address": "Midnapore town, Midnapore - 721101",
+    "area": "Midnapore Town",
+    "city": "Midnapore",
+    "location": {
+      "lat": 22.4235,
+      "lng": 87.3225,
+      "mapUrl": "https://www.google.com/maps/search/?api=1&query=Shantiniketan%20Mess%2C%20Midnapore%20town%2C%20Midnapore%20-%20721101%2C%20Midnapore%2C%20West%20Bengal"
+    },
+    "price": 2800,
+    "securityDeposit": 2500,
+    "roomType": "Shared",
+    "roomSharing": "Triple",
+    "furnishing": "Furnished",
+    "bathroomType": "Common bathroom",
+    "gender": "Co-ed",
+    "accommodationType": "Unisex",
+    "foodType": "Veg",
+    "foodAvailable": true,
+    "foodIncluded": "Included in rent",
+    "foodPreference": "Veg",
+    "breakfast": "Available",
+    "lunch": "Available",
+    "dinner": "Available",
+    "selfCooking": "Available",
+    "kitchenAccess": "Not specified",
+    "cookingGas": "Not specified",
+    "inductionCooking": "Not specified",
+    "electricityCharges": "Not specified",
+    "waterSupply": "Not specified",
+    "facilities": [
+      "Wi-Fi",
+      "RO Water",
+      "Study Table",
+      "Parking"
+    ],
+    "nearby": {
+      "college": "Midnapore College",
+      "busStand": "Keranitola Bus Stop",
+      "railwayStation": "Midnapore Railway Station"
+    },
+    "rules": [
+      "Peaceful study atmosphere"
+    ],
+    "contactPhone": "",
+    "contactEmail": "",
+    "whatsapp": "",
+    "images": [
+      "/uploads/messes/Screenshot-2026-11-21-221003-1795279216975-1.png"
+    ],
+    "availabilityStatus": "available",
+    "approvalStatus": "approved",
+    "rejectionReason": "",
+    "averageRating": 0,
+    "reviewCount": 0,
+    "ownerName": "Shantiniketan Mess (Proprietor)"
+  },
+  {
+    "name": "Bharat PG",
+    "description": "Boys PG in Puratan Bazar, Kharagpur (PIN 721301). Details collected from public business listings; owner to confirm rent, facilities and food details.",
+    "address": "Puratan Bazar, Kharagpur - 721301",
+    "area": "Puratan Bazar",
+    "city": "Kharagpur",
+    "location": {
+      "lat": 22.3435,
+      "lng": 87.3285,
+      "mapUrl": "https://www.google.com/maps/search/?api=1&query=Bharat%20PG%2C%20Puratan%20Bazar%2C%20Kharagpur%20-%20721301%2C%20Kharagpur%2C%20West%20Bengal"
+    },
+    "price": 4500,
+    "securityDeposit": 4000,
+    "roomType": "Shared",
+    "roomSharing": "Single",
+    "furnishing": "Furnished",
+    "bathroomType": "Attached bathroom",
+    "gender": "Boys",
+    "accommodationType": "Boys",
+    "foodType": "Both",
+    "foodAvailable": true,
+    "foodIncluded": "Included in rent",
+    "foodPreference": "Both",
+    "breakfast": "Available",
+    "lunch": "Available",
+    "dinner": "Available",
+    "selfCooking": "Not available",
+    "kitchenAccess": "Not specified",
+    "cookingGas": "Not specified",
+    "inductionCooking": "Not specified",
+    "electricityCharges": "Not specified",
+    "waterSupply": "Not specified",
+    "facilities": [
+      "Wi-Fi",
+      "Laundry",
+      "Attached bathroom",
+      "RO Water",
+      "Parking",
+      "CCTV"
+    ],
+    "nearby": {
+      "college": "IIT Kharagpur & Kharagpur College",
+      "busStand": "Puratan Bazar Bus Stop",
+      "railwayStation": "Kharagpur Junction"
+    },
+    "rules": [
+      "Gate closes at 10:30 PM",
+      "No smoking on premises"
+    ],
+    "contactPhone": "9382677161",
+    "contactEmail": "",
+    "whatsapp": "9382677161",
+    "images": [
+      "/uploads/messes/Screenshot-2026-11-21-220835-1795279145870-1.png"
+    ],
+    "availabilityStatus": "available",
+    "approvalStatus": "approved",
+    "rejectionReason": "",
+    "averageRating": 0,
+    "reviewCount": 0,
+    "ownerName": "Bharat PG (Proprietor)"
+  },
+  {
+    "name": "AFS Apartment",
+    "description": "PG / Accommodation in Puratan Bazar, Kar Gaddi Gali, Kharagpur (PIN 721301). Details collected from public business listings; owner to confirm rent, facilities and food details.",
+    "address": "Puratan Bazar, Kar Gaddi Gali, Kharagpur - 721301",
+    "area": "Puratan Bazar",
+    "city": "Kharagpur",
+    "location": {
+      "lat": 22.3428,
+      "lng": 87.3274,
+      "mapUrl": "https://www.google.com/maps/search/?api=1&query=AFS%20Apartment%2C%20Puratan%20Bazar%2C%20Kar%20Gaddi%20Gali%2C%20Kharagpur%20-%20721301%2C%20Kharagpur%2C%20West%20Bengal"
+    },
+    "price": 4200,
+    "securityDeposit": 4000,
+    "roomType": "Shared",
+    "roomSharing": "Double",
+    "furnishing": "Furnished",
+    "bathroomType": "Attached bathroom",
+    "gender": "Co-ed",
+    "accommodationType": "Unisex",
+    "foodType": "Both",
+    "foodAvailable": true,
+    "foodIncluded": "Charged separately",
+    "foodPreference": "Both",
+    "breakfast": "Available",
+    "lunch": "Available",
+    "dinner": "Available",
+    "selfCooking": "Available",
+    "kitchenAccess": "Not specified",
+    "cookingGas": "Not specified",
+    "inductionCooking": "Not specified",
+    "electricityCharges": "Not specified",
+    "waterSupply": "Not specified",
+    "facilities": [
+      "Wi-Fi",
+      "Attached bathroom",
+      "Kitchen Access",
+      "Parking",
+      "RO Water"
+    ],
+    "nearby": {
+      "college": "IIT Kharagpur",
+      "busStand": "Puratan Bazar Stand",
+      "railwayStation": "Kharagpur Junction"
+    },
+    "rules": [
+      "Self cooking allowed with induction/gas",
+      "Keep kitchen tidy"
+    ],
+    "contactPhone": "8918074950",
+    "contactEmail": "",
+    "whatsapp": "8918074950",
+    "images": [
+      "/uploads/messes/Screenshot-2026-11-21-220408-1795278859335-1.png"
+    ],
+    "availabilityStatus": "available",
+    "approvalStatus": "approved",
+    "rejectionReason": "",
+    "averageRating": 0,
+    "reviewCount": 0,
+    "ownerName": "AFS Real Estate (Proprietor)"
+  },
+  {
+    "name": "Tapas P.G.",
+    "description": "PG in Rabindrapally, IIT Bypass Road, Kharagpur (PIN 721301). Details collected from public business listings; owner to confirm rent, facilities and food details.",
+    "address": "Rabindrapally, IIT Bypass Road, Kharagpur - 721301",
+    "area": "Rabindrapally",
+    "city": "Kharagpur",
+    "location": {
+      "lat": 22.3235,
+      "lng": 87.3165,
+      "mapUrl": "https://www.google.com/maps/search/?api=1&query=Tapas%20P.G.%2C%20Rabindrapally%2C%20IIT%20Bypass%20Road%2C%20Kharagpur%20-%20721301%2C%20Kharagpur%2C%20West%20Bengal"
+    },
+    "price": 3800,
+    "securityDeposit": 3500,
+    "roomType": "Shared",
+    "roomSharing": "Double",
+    "furnishing": "Furnished",
+    "bathroomType": "Attached bathroom",
+    "gender": "Co-ed",
+    "accommodationType": "Unisex",
+    "foodType": "Non-veg",
+    "foodAvailable": true,
+    "foodIncluded": "Included in rent",
+    "foodPreference": "Non-veg",
+    "breakfast": "Available",
+    "lunch": "Available",
+    "dinner": "Available",
+    "selfCooking": "Not available",
+    "kitchenAccess": "Not specified",
+    "cookingGas": "Not specified",
+    "inductionCooking": "Not specified",
+    "electricityCharges": "Not specified",
+    "waterSupply": "Not specified",
+    "facilities": [
+      "Wi-Fi",
+      "Attached bathroom",
+      "RO Water",
+      "Study Table",
+      "Parking"
+    ],
+    "nearby": {
+      "college": "IIT Kharagpur (Bypass Road)",
+      "busStand": "Rabindrapally / Hijli Stop",
+      "railwayStation": "Kharagpur Junction & Hijli Station"
+    },
+    "rules": [
+      "Entry by 10 PM"
+    ],
+    "contactPhone": "9434193050",
+    "contactEmail": "tapas.bdarshan@gmail.com",
+    "whatsapp": "9434193050",
+    "images": [
+      "/uploads/messes/Screenshot-2026-11-21-220234-1795278784794-1.png"
+    ],
+    "availabilityStatus": "available",
+    "approvalStatus": "approved",
+    "rejectionReason": "",
+    "averageRating": 0,
+    "reviewCount": 0,
+    "ownerName": "Tapas (Tapas Home Stay)"
+  },
+  {
+    "name": "Kharagpur P.G.",
+    "description": "Boys PG in Ramkrishnapally, Inda, near Durga Temple, Kharagpur (PIN 721305). Details collected from public business listings; owner to confirm rent, facilities and food details.",
+    "address": "Ramkrishnapally, Inda, near Durga Temple, Kharagpur - 721305",
+    "area": "Inda",
+    "city": "Kharagpur",
+    "location": {
+      "lat": 22.3485,
+      "lng": 87.3348,
+      "mapUrl": "https://www.google.com/maps/search/?api=1&query=Kharagpur%20P.G.%2C%20Ramkrishnapally%2C%20Inda%2C%20near%20Durga%20Temple%2C%20Kharagpur%20-%20721305%2C%20Kharagpur%2C%20West%20Bengal"
+    },
+    "price": 3600,
+    "securityDeposit": 3000,
+    "roomType": "Shared",
+    "roomSharing": "Double",
+    "furnishing": "Furnished",
+    "bathroomType": "Common bathroom",
+    "gender": "Boys",
+    "accommodationType": "Boys",
+    "foodType": "Both",
+    "foodAvailable": true,
+    "foodIncluded": "Included in rent",
+    "foodPreference": "Both",
+    "breakfast": "Available",
+    "lunch": "Available",
+    "dinner": "Available",
+    "selfCooking": "Not available",
+    "kitchenAccess": "Not specified",
+    "cookingGas": "Not specified",
+    "inductionCooking": "Not specified",
+    "electricityCharges": "Not specified",
+    "waterSupply": "Not specified",
+    "facilities": [
+      "Wi-Fi",
+      "Study Table",
+      "Laundry",
+      "RO Water"
+    ],
+    "nearby": {
+      "college": "Kharagpur College & IIT Kharagpur",
+      "busStand": "Inda Bazar Bus Stop",
+      "railwayStation": "Kharagpur Junction"
+    },
+    "rules": [
+      "Gate closes at 10:00 PM"
+    ],
+    "contactPhone": "7679455348",
+    "contactEmail": "",
+    "whatsapp": "7679455348",
+    "images": [
+      "/uploads/messes/Screenshot-2026-11-21-220127-1795278702322-1.png"
+    ],
+    "availabilityStatus": "available",
+    "approvalStatus": "approved",
+    "rejectionReason": "",
+    "averageRating": 0,
+    "reviewCount": 0,
+    "ownerName": "Kharagpur P.G. (Proprietor)"
+  },
+  {
+    "name": "Premium Boys AC PG",
+    "description": "Boys PG in Regent Saras Residency 2, Kharagpur (PIN 721305). Details collected from public business listings; owner to confirm rent, facilities and food details.",
+    "address": "Regent Saras Residency 2, Kharagpur - 721305",
+    "area": "Inda",
+    "city": "Kharagpur",
+    "location": {
+      "lat": 22.3528,
+      "lng": 87.3335,
+      "mapUrl": "https://www.google.com/maps/search/?api=1&query=Premium%20Boys%20AC%20PG%2C%20Regent%20Saras%20Residency%202%2C%20Kharagpur%20-%20721305%2C%20Kharagpur%2C%20West%20Bengal"
+    },
+    "price": 5200,
+    "securityDeposit": 5000,
+    "roomType": "Shared",
+    "roomSharing": "Single",
+    "furnishing": "Furnished",
+    "bathroomType": "Attached bathroom",
+    "gender": "Boys",
+    "accommodationType": "Boys",
+    "foodType": "Both",
+    "foodAvailable": true,
+    "foodIncluded": "Included in rent",
+    "foodPreference": "Both",
+    "breakfast": "Available",
+    "lunch": "Available",
+    "dinner": "Available",
+    "selfCooking": "Not available",
+    "kitchenAccess": "Not specified",
+    "cookingGas": "Not specified",
+    "inductionCooking": "Not specified",
+    "electricityCharges": "Not specified",
+    "waterSupply": "Not specified",
+    "facilities": [
+      "Wi-Fi",
+      "Attached bathroom",
+      "Laundry",
+      "RO Water",
+      "Parking",
+      "CCTV"
+    ],
+    "nearby": {
+      "college": "Kharagpur College & IIT Kharagpur",
+      "busStand": "Inda / Vidyasagarpur Chawk",
+      "railwayStation": "Kharagpur Junction"
+    },
+    "rules": [
+      "Strictly no smoking",
+      "AC usage charged per meter/included"
+    ],
+    "contactPhone": "7873800938",
+    "contactEmail": "",
+    "whatsapp": "7873800938",
+    "images": [
+      "/uploads/messes/Screenshot-2026-11-21-215926-1795278577719-1.png"
+    ],
+    "availabilityStatus": "available",
+    "approvalStatus": "approved",
+    "rejectionReason": "",
+    "averageRating": 0,
+    "reviewCount": 0,
+    "ownerName": "Regent Saras PG Management"
+  },
+  {
+    "name": "Sujay Kr Sharma PG Hostel",
+    "description": "PG / Homestay in Rabindrapally, Kharagpur (PIN 721301). Details collected from public business listings; owner to confirm rent, facilities and food details.",
+    "address": "Rabindrapally, Kharagpur - 721301",
+    "area": "Rabindrapally",
+    "city": "Kharagpur",
+    "location": {
+      "lat": 22.3248,
+      "lng": 87.3178,
+      "mapUrl": "https://www.google.com/maps/search/?api=1&query=Sujay%20Kr%20Sharma%20PG%20Hostel%2C%20Rabindrapally%2C%20Kharagpur%20-%20721301%2C%20Kharagpur%2C%20West%20Bengal"
+    },
+    "price": 3400,
+    "securityDeposit": 3000,
+    "roomType": "Shared",
+    "roomSharing": "Double",
+    "furnishing": "Furnished",
+    "bathroomType": "Common bathroom",
+    "gender": "Co-ed",
+    "accommodationType": "Unisex",
+    "foodType": "Veg",
+    "foodAvailable": true,
+    "foodIncluded": "Included in rent",
+    "foodPreference": "Veg",
+    "breakfast": "Available",
+    "lunch": "Available",
+    "dinner": "Available",
+    "selfCooking": "Not available",
+    "kitchenAccess": "Not specified",
+    "cookingGas": "Not specified",
+    "inductionCooking": "Not specified",
+    "electricityCharges": "Not specified",
+    "waterSupply": "Not specified",
+    "facilities": [
+      "Wi-Fi",
+      "Study Table",
+      "RO Water",
+      "Parking"
+    ],
+    "nearby": {
+      "college": "IIT Kharagpur",
+      "busStand": "Rabindrapally Stop",
+      "railwayStation": "Kharagpur Junction"
+    },
+    "rules": [
+      "Gate closes at 10:00 PM"
+    ],
+    "contactPhone": "",
+    "contactEmail": "",
+    "whatsapp": "",
+    "images": [
+      "/uploads/messes/Screenshot-2026-11-21-212414-1795278497212-1.png"
+    ],
+    "availabilityStatus": "available",
+    "approvalStatus": "approved",
+    "rejectionReason": "",
+    "averageRating": 0,
+    "reviewCount": 0,
+    "ownerName": "Sujay Kr Sharma"
+  },
+  {
+    "name": "TM - MESS",
+    "description": "Residential listing (type to be confirmed) in Subhaspally, Kharagpur (PIN 721301). Details collected from public business listings; owner to confirm rent, facilities and food details.",
+    "address": "Subhaspally, Kharagpur - 721301",
+    "area": "Subhaspally",
+    "city": "Kharagpur",
+    "location": {
+      "lat": 22.3375,
+      "lng": 87.3295,
+      "mapUrl": "https://www.google.com/maps/search/?api=1&query=TM%20-%20MESS%2C%20Subhaspally%2C%20Kharagpur%20-%20721301%2C%20Kharagpur%2C%20West%20Bengal"
+    },
+    "price": 3100,
+    "securityDeposit": 2500,
+    "roomType": "Shared",
+    "roomSharing": "Triple",
+    "furnishing": "Furnished",
+    "bathroomType": "Common bathroom",
+    "gender": "Co-ed",
+    "accommodationType": "Unisex",
+    "foodType": "Both",
+    "foodAvailable": true,
+    "foodIncluded": "Included in rent",
+    "foodPreference": "Both",
+    "breakfast": "Available",
+    "lunch": "Available",
+    "dinner": "Available",
+    "selfCooking": "Available",
+    "kitchenAccess": "Not specified",
+    "cookingGas": "Not specified",
+    "inductionCooking": "Not specified",
+    "electricityCharges": "Not specified",
+    "waterSupply": "Not specified",
+    "facilities": [
+      "Wi-Fi",
+      "RO Water",
+      "Study Table"
+    ],
+    "nearby": {
+      "college": "Kharagpur College & IIT Kharagpur",
+      "busStand": "Subhaspally Stop",
+      "railwayStation": "Kharagpur Junction"
+    },
+    "rules": [
+      "Cleanliness must be maintained"
+    ],
+    "contactPhone": "",
+    "contactEmail": "",
+    "whatsapp": "",
+    "images": [],
+    "availabilityStatus": "available",
+    "approvalStatus": "approved",
+    "rejectionReason": "",
+    "averageRating": 0,
+    "reviewCount": 0,
+    "ownerName": "TM - MESS (Proprietor)"
+  },
+  {
+    "name": "Uttaran Mess",
+    "description": "Residential listing (type to be confirmed) in Vidyasagarpur, Panchberia Road, Kharagpur (PIN 721305). Details collected from public business listings; owner to confirm rent, facilities and food details.",
+    "address": "Vidyasagarpur, Panchberia Road, Kharagpur - 721305",
+    "area": "Vidyasagarpur",
+    "city": "Kharagpur",
+    "location": {
+      "lat": 22.3555,
+      "lng": 87.3292,
+      "mapUrl": "https://www.google.com/maps/search/?api=1&query=Uttaran%20Mess%2C%20Vidyasagarpur%2C%20Panchberia%20Road%2C%20Kharagpur%20-%20721305%2C%20Kharagpur%2C%20West%20Bengal"
+    },
+    "price": 3000,
+    "securityDeposit": 2500,
+    "roomType": "Shared",
+    "roomSharing": "Double",
+    "furnishing": "Furnished",
+    "bathroomType": "Common bathroom",
+    "gender": "Co-ed",
+    "accommodationType": "Unisex",
+    "foodType": "Veg",
+    "foodAvailable": true,
+    "foodIncluded": "Included in rent",
+    "foodPreference": "Veg",
+    "breakfast": "Available",
+    "lunch": "Available",
+    "dinner": "Available",
+    "selfCooking": "Available",
+    "kitchenAccess": "Not specified",
+    "cookingGas": "Not specified",
+    "inductionCooking": "Not specified",
+    "electricityCharges": "Not specified",
+    "waterSupply": "Not specified",
+    "facilities": [
+      "Wi-Fi",
+      "RO Water",
+      "Study Table",
+      "Parking"
+    ],
+    "nearby": {
+      "college": "Kharagpur College",
+      "busStand": "Panchberia / Vidyasagarpur Stop",
+      "railwayStation": "Kharagpur Junction"
+    },
+    "rules": [
+      "Gate closes at 10 PM"
+    ],
+    "contactPhone": "",
+    "contactEmail": "",
+    "whatsapp": "",
+    "images": [],
+    "availabilityStatus": "available",
+    "approvalStatus": "approved",
+    "rejectionReason": "",
+    "averageRating": 0,
+    "reviewCount": 0,
+    "ownerName": "Uttaran Mess (Proprietor)"
+  },
+  {
+    "name": "Aurobinda Mess",
+    "description": "Student Mess in Midnapore town, Midnapore (PIN 721101). Details collected from public business listings; owner to confirm rent, facilities and food details.",
+    "address": "Midnapore town, Midnapore - 721101",
+    "area": "Midnapore Town",
+    "city": "Midnapore",
+    "location": {
+      "lat": 22.4242,
+      "lng": 87.3208,
+      "mapUrl": "https://www.google.com/maps/search/?api=1&query=Aurobinda%20Mess%2C%20Midnapore%20town%2C%20Midnapore%20-%20721101%2C%20Midnapore%2C%20West%20Bengal"
+    },
+    "price": 2700,
+    "securityDeposit": 2000,
+    "roomType": "Shared",
+    "roomSharing": "Double",
+    "furnishing": "Furnished",
+    "bathroomType": "Common bathroom",
+    "gender": "Boys",
+    "accommodationType": "Boys",
+    "foodType": "Both",
+    "foodAvailable": true,
+    "foodIncluded": "Included in rent",
+    "foodPreference": "Both",
+    "breakfast": "Available",
+    "lunch": "Available",
+    "dinner": "Available",
+    "selfCooking": "Not available",
+    "kitchenAccess": "Not specified",
+    "cookingGas": "Not specified",
+    "inductionCooking": "Not specified",
+    "electricityCharges": "Not specified",
+    "waterSupply": "Not specified",
+    "facilities": [
+      "Wi-Fi",
+      "RO Water",
+      "Study Table"
+    ],
+    "nearby": {
+      "college": "Midnapore College",
+      "busStand": "Central Bus Stand",
+      "railwayStation": "Midnapore Railway Station"
+    },
+    "rules": [
+      "Maintain cleanliness"
+    ],
+    "contactPhone": "",
+    "contactEmail": "",
+    "whatsapp": "",
+    "images": [
+      "/uploads/messes/Screenshot-2026-11-21-211428-1795275896212-1.png"
+    ],
+    "availabilityStatus": "available",
+    "approvalStatus": "approved",
+    "rejectionReason": "",
+    "averageRating": 0,
+    "reviewCount": 0,
+    "ownerName": "Aurobinda Mess (Proprietor)"
+  },
+  {
+    "name": "Puspak Mess",
+    "description": "Student Mess in Raja Bazar, Midnapore (PIN 721101). Details collected from public business listings; owner to confirm rent, facilities and food details.",
+    "address": "Raja Bazar, Midnapore - 721101",
+    "area": "Raja Bazar",
+    "city": "Midnapore",
+    "location": {
+      "lat": 22.4216,
+      "lng": 87.3258,
+      "mapUrl": "https://www.google.com/maps/search/?api=1&query=Puspak%20Mess%2C%20Raja%20Bazar%2C%20Midnapore%20-%20721101%2C%20Midnapore%2C%20West%20Bengal"
+    },
+    "price": 2900,
+    "securityDeposit": 2500,
+    "roomType": "Shared",
+    "roomSharing": "Triple",
+    "furnishing": "Furnished",
+    "bathroomType": "Common bathroom",
+    "gender": "Boys",
+    "accommodationType": "Boys",
+    "foodType": "Both",
+    "foodAvailable": true,
+    "foodIncluded": "Included in rent",
+    "foodPreference": "Both",
+    "breakfast": "Available",
+    "lunch": "Available",
+    "dinner": "Available",
+    "selfCooking": "Not available",
+    "kitchenAccess": "Not specified",
+    "cookingGas": "Not specified",
+    "inductionCooking": "Not specified",
+    "electricityCharges": "Not specified",
+    "waterSupply": "Not specified",
+    "facilities": [
+      "Wi-Fi",
+      "RO Water",
+      "Study Table"
+    ],
+    "nearby": {
+      "college": "Midnapore College & Collegiate School",
+      "busStand": "Raja Bazar Bus Stop",
+      "railwayStation": "Midnapore Railway Station"
+    },
+    "rules": [
+      "Gate closes at 10:00 PM"
+    ],
+    "contactPhone": "",
+    "contactEmail": "",
+    "whatsapp": "",
+    "images": [
+      "/uploads/messes/Screenshot-2026-11-21-210842-1795275559398-1.png"
+    ],
+    "availabilityStatus": "available",
+    "approvalStatus": "approved",
+    "rejectionReason": "",
+    "averageRating": 0,
+    "reviewCount": 0,
+    "ownerName": "Puspak Mess (Proprietor)"
+  },
+  {
+    "name": "Silver Spring Boys Mess",
+    "description": "Boys Mess in Rangamati, near Paramedical College, Midnapore (PIN 721102). Details collected from public business listings; owner to confirm rent, facilities and food details.",
+    "address": "Rangamati, near Paramedical College, Midnapore - 721102",
+    "area": "Rangamati",
+    "city": "Midnapore",
+    "location": {
+      "lat": 22.4292,
+      "lng": 87.2998,
+      "mapUrl": "https://www.google.com/maps/search/?api=1&query=Silver%20Spring%20Boys%20Mess%2C%20Rangamati%2C%20near%20Paramedical%20College%2C%20Midnapore%20-%20721102%2C%20Midnapore%2C%20West%20Bengal"
+    },
+    "price": 3200,
+    "securityDeposit": 3000,
+    "roomType": "Shared",
+    "roomSharing": "Double",
+    "furnishing": "Furnished",
+    "bathroomType": "Common bathroom",
+    "gender": "Boys",
+    "accommodationType": "Boys",
+    "foodType": "Both",
+    "foodAvailable": true,
+    "foodIncluded": "Included in rent",
+    "foodPreference": "Both",
+    "breakfast": "Available",
+    "lunch": "Available",
+    "dinner": "Available",
+    "selfCooking": "Not available",
+    "kitchenAccess": "Not specified",
+    "cookingGas": "Not specified",
+    "inductionCooking": "Not specified",
+    "electricityCharges": "Not specified",
+    "waterSupply": "Not specified",
+    "facilities": [
+      "Wi-Fi",
+      "Study Table",
+      "RO Water",
+      "Laundry"
+    ],
+    "nearby": {
+      "college": "Vidyasagar University & Paramedical College",
+      "busStand": "Tantigeria Bus Stand",
+      "railwayStation": "Midnapore Railway Station"
+    },
+    "rules": [
+      "Gate closes at 10:00 PM",
+      "Maintain silence during study hours"
+    ],
+    "contactPhone": "8116139302",
+    "contactEmail": "",
+    "whatsapp": "8116139302",
+    "images": [
+      "/uploads/messes/Screenshot-2026-11-21-212759-1795278390740-1.png"
+    ],
+    "availabilityStatus": "available",
+    "approvalStatus": "approved",
+    "rejectionReason": "",
+    "averageRating": 0,
+    "reviewCount": 0,
+    "ownerName": "Silver Spring Boys Mess (Proprietor)"
+  }
+]

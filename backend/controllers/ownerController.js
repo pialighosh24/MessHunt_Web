@@ -54,14 +54,12 @@ const getOwnerReviews = asyncHandler(async (req, res) => {
 });
 
 const uploadMessImages = asyncHandler(async (req, res) => {
-  const files = Array.isArray(req.body?.files) ? req.body.files : [];
-  if (!files.length) {
-    return res.status(400).json({ success: false, message: 'No image files provided.' });
-  }
   const uploadDir = path.join(__dirname, '..', '..', 'uploads', 'messes');
   fs.mkdirSync(uploadDir, { recursive: true });
-
   const savedUrls = [];
+
+  // 1. Handle JSON base64 payload: { files: [{ name, dataUrl }] }
+  const files = Array.isArray(req.body?.files) ? req.body.files : [];
   for (let i = 0; i < files.length; i++) {
     const item = files[i] || {};
     const dataUrl = String(item.dataUrl || '');
@@ -76,14 +74,58 @@ const uploadMessImages = asyncHandler(async (req, res) => {
       .slice(0, 32) || 'mess';
     const filename = `${safeBase}-${Date.now()}-${i + 1}.${ext}`;
     fs.writeFileSync(path.join(uploadDir, filename), buffer);
-    savedUrls.push(`uploads/messes/${filename}`);
+    savedUrls.push(`/uploads/messes/${filename}`);
+  }
+
+  // 2. Handle multipart/form-data raw binary upload (if called via FormData to /api/uploads/images)
+  const contentType = String(req.headers['content-type'] || '');
+  if (!savedUrls.length && contentType.includes('multipart/form-data')) {
+    const boundaryMatch = contentType.match(/boundary=(?:"([^"]+)"|([^;]+))/i);
+    const boundary = boundaryMatch ? (boundaryMatch[1] || boundaryMatch[2]) : null;
+    if (boundary) {
+      const chunks = [];
+      for await (const chunk of req) chunks.push(chunk);
+      const rawBuf = Buffer.concat(chunks);
+      const boundaryBuf = Buffer.from(`--${boundary}`);
+      let pos = 0;
+      let fileIdx = 0;
+      while (pos < rawBuf.length) {
+        const start = rawBuf.indexOf(boundaryBuf, pos);
+        if (start === -1) break;
+        const next = rawBuf.indexOf(boundaryBuf, start + boundaryBuf.length);
+        if (next === -1) break;
+        const part = rawBuf.subarray(start + boundaryBuf.length + 2, next - 2);
+        const headerEnd = part.indexOf(Buffer.from('\r\n\r\n'));
+        if (headerEnd !== -1) {
+          const headerStr = part.subarray(0, headerEnd).toString('utf8');
+          const bodyBuf = part.subarray(headerEnd + 4);
+          const fnMatch = headerStr.match(/filename="([^"]+)"/i);
+          if (fnMatch && bodyBuf.length > 0) {
+            fileIdx++;
+            const origName = fnMatch[1];
+            const extMatch = origName.match(/\.(png|jpe?g|webp|gif)$/i);
+            const ext = extMatch ? extMatch[1].toLowerCase().replace('jpeg', 'jpg') : 'png';
+            const safeBase = origName.replace(/\.[^/.]+$/, '').replace(/[^a-z0-9_-]/gi, '-').slice(0, 32) || 'mess';
+            const filename = `${safeBase}-${Date.now()}-${fileIdx}.${ext}`;
+            fs.writeFileSync(path.join(uploadDir, filename), bodyBuf);
+            savedUrls.push(`/uploads/messes/${filename}`);
+          }
+        }
+        pos = next;
+      }
+    }
   }
 
   if (!savedUrls.length) {
     return res.status(400).json({ success: false, message: 'Invalid image format. Please upload JPG, PNG, or WEBP photos.' });
   }
 
-  res.json({ success: true, message: `${savedUrls.length} photo(s) uploaded.`, urls: savedUrls });
+  res.json({
+    success: true,
+    message: `${savedUrls.length} photo(s) uploaded.`,
+    urls: savedUrls,
+    data: savedUrls.map(u => ({ url: u }))
+  });
 });
 
 module.exports = { getOwnerDashboard, getOwnerBookings, getOwnerReviews, uploadMessImages };

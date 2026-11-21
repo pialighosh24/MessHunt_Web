@@ -114,6 +114,7 @@
 
         <h3 style="margin-top:16px;">Contact & Location</h3>
         <div class="form-grid">
+          <div><label>Owner / Proprietor Name</label><input id="mOwnerName" placeholder="e.g. Goutam Sarkar"></div>
           <div><label>Contact Phone</label><input id="mPhone"></div>
           <div><label>WhatsApp</label><input id="mWhatsapp"></div>
           <div><label>Contact Email</label><input id="mEmail" type="email"></div>
@@ -360,7 +361,7 @@
         setSelect('mSelfCooking', m.selfCooking); setSelect('mKitchenAccess', m.kitchenAccess); setSelect('mCookingGas', m.cookingGas); setSelect('mInductionCooking', m.inductionCooking);
         setSelect('mFoodIncluded', m.foodIncluded); setSelect('mFoodPreference', m.foodPreference || m.foodType); setSelect('mBreakfast', m.breakfast); setSelect('mLunch', m.lunch); setSelect('mDinner', m.dinner);
         setSelect('mWaterSupply', m.waterSupply); setSelect('mElectricityCharges', m.electricityCharges);
-        setVal('mPhone', m.contactPhone||''); setVal('mWhatsapp', m.whatsapp||''); setVal('mEmail', m.contactEmail||'');
+        setVal('mOwnerName', m.ownerName||''); setVal('mPhone', m.contactPhone||''); setVal('mWhatsapp', m.whatsapp||''); setVal('mEmail', m.contactEmail||'');
         setVal('mMapUrl', m.location?.mapUrl||''); setVal('mLat', m.location?.lat ?? ''); setVal('mLng', m.location?.lng ?? '');
         setVal('mNearCollege', m.nearby?.college||''); setVal('mNearBus', m.nearby?.busStand||''); setVal('mNearRailway', m.nearby?.railwayStation||'');
         setVal('mRules', arrToCsv(m.rules)); setVal('mImages', arrToCsv(m.images));
@@ -624,6 +625,7 @@
             electricityCharges: val('mElectricityCharges'),
             facilities: buildFacilitiesFromForm(),
             nearby: { college: val('mNearCollege').trim(), busStand: val('mNearBus').trim(), railwayStation: val('mNearRailway').trim() },
+            ownerName: val('mOwnerName').trim(),
             contactPhone: val('mPhone').trim(),
             whatsapp: val('mWhatsapp').trim(),
             contactEmail: val('mEmail').trim(),

@@ -236,24 +236,39 @@
     loadMesses();
   }
 
+  function runHeroSearch() {
+    // Clear secondary filters when running a direct Hero Search so only the searched mess is matched
+    ['locationFilter','accommodationTypeFilter','minPrice','maxPrice','foodPreferenceFilter','nearbyFilter'].forEach(id => {
+      const el = qs(id);
+      if (el) el.value = '';
+    });
+    document.querySelectorAll('#facilityFilters input[type="checkbox"]').forEach(c => c.checked = false);
+    applyFilters();
+    document.getElementById('explore')?.scrollIntoView({ behavior: 'smooth' });
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
     MHUI.renderNavAuth('navAuthArea');
 
-    setupAutocomplete('heroSearch', 'heroAutocomplete', () => {
-      applyFilters();
-      document.getElementById('explore')?.scrollIntoView({ behavior: 'smooth' });
-    });
+    // Dropdown autocomplete ONLY on filter 1 (Location), NOT on Hero Search
     setupAutocomplete('locationFilter', 'locationAutocomplete', () => {
       applyFilters();
     });
 
-    // Sync hero search to filter search context when applying
+    // Hero Search (mess name only, no dropdown, case-insensitive)
     qs('heroSearchBtn')?.addEventListener('click', () => {
-      applyFilters();
-      document.getElementById('explore')?.scrollIntoView({ behavior: 'smooth' });
+      runHeroSearch();
     });
     qs('heroSearch')?.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') { applyFilters(); document.getElementById('explore')?.scrollIntoView({ behavior: 'smooth' }); }
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        runHeroSearch();
+      }
+    });
+    qs('heroSearch')?.addEventListener('input', (e) => {
+      if (e.target.value.trim() === '') {
+        applyFilters();
+      }
     });
     qs('locationFilter')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') applyFilters(); });
     qs('minPrice')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') applyFilters(); });

@@ -21,6 +21,9 @@ const bookingRoutes = require('./routes/bookingRoutes');
 const ownerRoutes = require('./routes/ownerRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const reportRoutes = require('./routes/reportRoutes');
+const { protect } = require('./middleware/auth');
+const { authorize } = require('./middleware/role');
+const { uploadMessImages } = require('./controllers/ownerController');
 
 const app = express();
 
@@ -45,6 +48,7 @@ app.use('/api/reviews', reviewRoutes);
 app.use('/api/favourites', favouriteRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/owner', ownerRoutes);
+app.post('/api/uploads/images', protect, authorize('owner', 'admin'), uploadMessImages);
 app.use('/api/admin', adminRoutes);
 app.use('/api/reports', reportRoutes);
 

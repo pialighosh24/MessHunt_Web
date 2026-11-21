@@ -4,7 +4,10 @@ import { MHLocations } from '../data/locations'
 import { escapeHtml } from '../services/ui'
 
 function cardImage(mess) {
-  return (mess.images && mess.images[0]) ? mess.images[0] : '/assets/logo.svg'
+  const raw = (mess.images && mess.images[0]) ? String(mess.images[0]).trim() : ''
+  if (!raw) return '/assets/logo.svg'
+  if (raw.startsWith('http://') || raw.startsWith('https://') || raw.startsWith('data:') || raw.startsWith('/')) return raw
+  return `/${raw}`
 }
 
 function displayAccommodation(mess) {
@@ -16,11 +19,19 @@ function displayFood(mess) {
   return mess.foodPreference && mess.foodPreference !== 'Not specified' ? mess.foodPreference : (mess.foodType || 'Not specified')
 }
 
-function MessCard({ mess }) {
+function MessCard({ mess, onLocate }) {
   const facilities = (mess.facilities || []).slice(0, 4)
-  const locationText = [mess.area, mess.address, mess.city].filter(Boolean).join(', ') || 'Location not specified'
+  const addr = String(mess.address || '').trim()
+  const area = String(mess.area || '').trim()
+  const city = String(mess.city || '').trim()
+  const locationParts = []
+  if (area && !addr.toLowerCase().includes(area.toLowerCase())) locationParts.push(area)
+  if (addr) locationParts.push(addr)
+  if (city && !addr.toLowerCase().includes(city.toLowerCase())) locationParts.push(city)
+  const locationText = locationParts.join(', ') || 'Location not specified'
   const hasCustomPhoto = Boolean(mess.images && mess.images[0] && !String(mess.images[0]).includes('assets/logo'))
-  const imgStyle = hasCustomPhoto ? { objectFit: 'cover', padding: 0 } : { objectFit: 'contain', padding: '18px' }
+  const imgStyle = hasCustomPhoto ? { objectFit: 'cover', padding: 0 } : { objectFit: 'contain', padding: '18px', background: '#eef3f9' }
+  const hasCoords = mess.location && mess.location.lat != null && mess.location.lng != null
 
   return (
     <article className="mess-card">
@@ -46,8 +57,11 @@ function MessCard({ mess }) {
           <div className="detail-item"><small>Food</small><strong>{displayFood(mess)}</strong></div>
           <div className="detail-item"><small>Availability</small><strong>{mess.availabilityStatus === 'available' ? 'Available' : 'Unavailable'}</strong></div>
         </div>
-        <div className="card-actions">
+        <div className="card-actions" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           <a className="btn btn-light" href={`details.html?id=${encodeURIComponent(mess._id)}`}>View Details</a>
+          {hasCoords && onLocate && (
+            <button className="btn btn-light" type="button" onClick={() => onLocate(mess._id)}>📍 Locate on Map</button>
+          )}
         </div>
       </div>
     </article>
@@ -85,9 +99,7 @@ export default function HomePage() {
   const [nearby, setNearby] = useState('')
   const [facilityChecks, setFacilityChecks] = useState({ 'Wi-Fi': false, 'Attached bathroom': false, 'Laundry': false, 'Parking': false })
 
-  const [heroAcOpen, setHeroAcOpen] = useState(false)
   const [locAcOpen, setLocAcOpen] = useState(false)
-  const [heroAcItems, setHeroAcItems] = useState([])
   const [locAcItems, setLocAcItems] = useState([])
 
   const [items, setItems] = useState([])
@@ -98,9 +110,10 @@ export default function HomePage() {
   const [totalPages, setTotalPages] = useState(1)
   const [mapLegend, setMapLegend] = useState('')
 
-  const limit = 9
+  const limit = 24
   const mapRef = useRef(null)
   const markersLayerRef = useRef(null)
+  const markerByIdRef = useRef({})
   const mapElRef = useRef(null)
   const reqSeq = useRef(0)
   const currentFiltersRef = useRef(null)
@@ -159,17 +172,30 @@ export default function HomePage() {
       return
     }
     const bounds = []
+    markerByIdRef.current = {}
     mappable.forEach(m => {
       const lat = Number(m.location.lat)
       const lng = Number(m.location.lng)
       bounds.push([lat, lng])
       const popup = `<div style="min-width:180px"><strong>${escapeHtml(m.name)}</strong><br><span>${escapeHtml([m.area, m.city].filter(Boolean).join(', '))}</span><br><span>₹${Number(m.price || 0)}/month • ${escapeHtml(displayAccommodation(m))}</span><br><a href="details.html?id=${encodeURIComponent(m._id)}">View details</a></div>`
-      window.L.marker([lat, lng]).addTo(layer).bindPopup(popup)
+      const marker = window.L.marker([lat, lng]).addTo(layer).bindPopup(popup)
+      markerByIdRef.current[String(m._id)] = { marker, lat, lng }
     })
     try { map.fitBounds(bounds, { padding: [20, 20], maxZoom: 14 }) } catch {}
-    setMapLegend(`${mappable.length} listing(s) shown on map. ${Math.max((list || []).length - mappable.length, 0)} listing(s) have no valid coordinates.`)
+    setMapLegend(`${mappable.length} listing(s) shown on map. Click "📍 Locate on Map" on any card to highlight its pin.`)
     setTimeout(() => { try { map.invalidateSize() } catch {} }, 0)
   }, [initMap])
+
+  const focusMessOnMap = useCallback((id) => {
+    const entry = markerByIdRef.current[String(id)]
+    const map = mapRef.current
+    if (!entry || !map) return
+    mapElRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    setTimeout(() => {
+      map.setView([entry.lat, entry.lng], 16, { animate: true })
+      entry.marker.openPopup()
+    }, 250)
+  }, [])
 
   const loadMesses = useCallback(async (pageOverride = 1, filtersOverride = null) => {
     const seq = ++reqSeq.current
@@ -243,10 +269,34 @@ export default function HomePage() {
     })
   }
 
+  const runHeroSearch = (valOverride) => {
+    const q = (typeof valOverride === 'string' ? valOverride : heroSearch).trim()
+    setLocationFilter('')
+    setAccommodationType('')
+    setMinPrice('')
+    setMaxPrice('')
+    setFoodPreference('')
+    setNearby('')
+    setFacilityChecks({ 'Wi-Fi': false, 'Attached bathroom': false, 'Laundry': false, 'Parking': false })
+    loadMesses(1, {
+      search: q,
+      location: '',
+      accommodationType: '',
+      minPrice: '',
+      maxPrice: '',
+      foodPreference: '',
+      nearby: '',
+      facilities: '',
+      sort: 'newest',
+    })
+    document.getElementById('explore')?.scrollIntoView({ behavior: 'smooth' })
+  }
+
   const onHeroSearchChange = (v) => {
     setHeroSearch(v)
-    setHeroAcItems(MHLocations.searchLocations(v))
-    setHeroAcOpen(true)
+    if (v.trim() === '') {
+      loadMesses(1, { search: '' })
+    }
   }
   const onLocationFilterChange = (v) => {
     setLocationFilter(v)
@@ -254,13 +304,10 @@ export default function HomePage() {
     setLocAcOpen(true)
   }
 
-  const selectHeroLocation = (name) => {
-    setHeroSearch(name)
-    setHeroAcOpen(false)
-  }
   const selectFilterLocation = (name) => {
     setLocationFilter(name)
     setLocAcOpen(false)
+    loadMesses(1, { location: name })
   }
 
   return (
@@ -277,21 +324,18 @@ export default function HomePage() {
                 <input
                   type="text"
                   id="heroSearch"
-                  placeholder="Search by mess name, area or location..."
+                  placeholder="Search by mess name..."
                   autoComplete="off"
-                  aria-label="Search by mess name, area or location"
+                  aria-label="Search by mess name"
                   value={heroSearch}
                   onChange={(e) => onHeroSearchChange(e.target.value)}
-                  onFocus={() => { setHeroAcItems(MHLocations.searchLocations(heroSearch)); setHeroAcOpen(true) }}
-                  onBlur={() => setTimeout(() => setHeroAcOpen(false), 150)}
-                  onKeyDown={(e) => { if (e.key === 'Enter') { applyFilters(true) } }}
+                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); runHeroSearch() } }}
                 />
-                <button className="btn btn-primary" id="heroSearchBtn" type="button" onClick={() => applyFilters(true)}>Search Messes</button>
+                <button className="btn btn-primary" id="heroSearchBtn" type="button" onClick={() => runHeroSearch()}>Search Messes</button>
               </div>
-              <AutocompleteList items={heroAcItems} open={heroAcOpen} onSelect={selectHeroLocation} />
             </div>
 
-            <p className="field-hint" style={{ marginTop: '6px' }}>Type a location (e.g. Kharagpur, Midnapore) to see suggestions, or search by mess name/area.</p>
+            <p className="field-hint" style={{ marginTop: '6px' }}>Enter a mess name (e.g. Uttaran Mess, Puspak Mess) and click Search Messes.</p>
           </div>
           <div className="hero-visual simple-visual">
             <div className="hero-card-highlight">
@@ -409,7 +453,7 @@ export default function HomePage() {
           <div className="mess-grid" id="messGrid">
             {loading && <div className="loading-state">Loading listings...</div>}
             {!loading && error && <div className="error-state">{error}</div>}
-            {!loading && !error && items.map((m) => <MessCard key={m._id} mess={m} />)}
+            {!loading && !error && items.map((m) => <MessCard key={m._id} mess={m} onLocate={focusMessOnMap} />)}
           </div>
           {!loading && !error && items.length === 0 && (
             <div className="no-results" id="noResults" style={{ display: 'block' }}>No mess listings found. Try changing your search or filters.</div>

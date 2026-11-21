@@ -145,6 +145,11 @@ const messSchema = new mongoose.Schema({
     type: [String],
     default: [],
   },
+  ownerName: {
+    type: String,
+    trim: true,
+    default: '',
+  },
   contactPhone: {
     type: String,
     trim: true,

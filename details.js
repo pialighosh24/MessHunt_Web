@@ -39,7 +39,7 @@
     if (!m) return;
     const locParts = [m.address, m.area, m.city].filter(Boolean);
     const loc = locParts.join(', ') || 'Not specified';
-    const ownerName = m.owner?.name || 'Not specified';
+    const ownerName = String(m.ownerName || '').trim() || `${m.name} (Proprietor)`;
 
     document.title = `${m.name} | MessHunt`;
     document.getElementById('messHeaderPanel').innerHTML = `
@@ -83,9 +83,9 @@
     const panel = document.getElementById('detailsInfoPanel');
     panel.style.display = 'block';
     const facilities = (m.facilities || []).map(f => `<span class="facility-pill">${MHUI.escapeHtml(f)}</span>`).join('') || '<span class="muted">Not specified</span>';
-    const phone = m.contactPhone || m.owner?.phone || '';
-    const whatsapp = m.whatsapp || phone || '';
-    const email = m.contactEmail || m.owner?.email || '';
+    const phone = String(m.contactPhone || '').trim();
+    const whatsapp = String(m.whatsapp || phone || '').trim();
+    const email = String(m.contactEmail || '').trim();
     const waNum = (whatsapp || '').replace(/[^0-9]/g, '');
 
     panel.innerHTML = `
@@ -158,15 +158,15 @@
       <div class="info-section">
         <h2>Owner & Contact Information</h2>
         <div class="info-table">
-          ${infoRow('Owner Name', ownerName)}
-          ${infoRow('Phone', phone)}
-          ${infoRow('WhatsApp', whatsapp)}
-          ${infoRow('Email', email)}
+          ${infoRow('Owner / Proprietor', ownerName)}
+          <div class="row"><div class="k">Phone</div><div class="v">${phone ? `<a href="tel:${MHUI.escapeHtml(phone)}" style="color:var(--primary);font-weight:700;text-decoration:underline;">📞 +91 ${MHUI.escapeHtml(phone)}</a>` : 'Not publicly listed on Google Maps'}</div></div>
+          <div class="row"><div class="k">WhatsApp</div><div class="v">${waNum ? `<a target="_blank" rel="noopener" href="https://wa.me/91${MHUI.escapeHtml(waNum)}" style="color:#15803d;font-weight:600;">💬 +91 ${MHUI.escapeHtml(whatsapp)}</a>` : 'Not publicly listed on Google Maps'}</div></div>
+          <div class="row"><div class="k">Email</div><div class="v">${email ? `<a href="mailto:${MHUI.escapeHtml(email)}" style="color:var(--primary);font-weight:600;text-decoration:underline;">✉️ ${MHUI.escapeHtml(email)}</a>` : 'Not publicly listed on Google Maps'}</div></div>
         </div>
-        <div class="contact-links" style="margin-top:10px;">
-          ${phone ? `<a class="btn btn-light" href="tel:${MHUI.escapeHtml(phone)}">Call</a>` : ''}
-          ${waNum ? `<a class="btn btn-light" target="_blank" rel="noopener" href="https://wa.me/91${MHUI.escapeHtml(waNum)}">WhatsApp</a>` : ''}
-          ${email ? `<a class="btn btn-light" href="mailto:${MHUI.escapeHtml(email)}">Email</a>` : ''}
+        <div class="contact-links" style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;">
+          ${phone ? `<a class="btn btn-primary" href="tel:${MHUI.escapeHtml(phone)}">📞 Call Owner (+91 ${MHUI.escapeHtml(phone)})</a>` : ''}
+          ${waNum ? `<a class="btn btn-light" target="_blank" rel="noopener" href="https://wa.me/91${MHUI.escapeHtml(waNum)}">💬 WhatsApp Owner</a>` : ''}
+          ${email ? `<a class="btn btn-light" href="mailto:${MHUI.escapeHtml(email)}">✉️ Email Owner (${MHUI.escapeHtml(email)})</a>` : ''}
         </div>
       </div>`;
 

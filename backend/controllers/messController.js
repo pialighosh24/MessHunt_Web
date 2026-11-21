@@ -77,10 +77,10 @@ const inferLocationFromFields = (payload) => {
 const buildMessPayload = (body, ownerId, isCreate = false) => {
   const payload = {};
   const fields = [
-    'name','description','address','area','city','price','securityDeposit','roomType','roomSharing','furnishing','bathroomType',
-    'gender','accommodationType','foodType','foodAvailable','foodIncluded','foodPreference','breakfast','lunch','dinner',
-    'selfCooking','kitchenAccess','cookingGas','inductionCooking','electricityCharges','waterSupply',
-    'facilities','rules','contactPhone','contactEmail','whatsapp','images','availabilityStatus'
+    'name', 'description', 'address', 'area', 'city', 'price', 'securityDeposit', 'roomType', 'roomSharing', 'furnishing', 'bathroomType',
+    'gender', 'accommodationType', 'foodType', 'foodAvailable', 'foodIncluded', 'foodPreference', 'breakfast', 'lunch', 'dinner',
+    'selfCooking', 'kitchenAccess', 'cookingGas', 'inductionCooking', 'electricityCharges', 'waterSupply',
+    'facilities', 'rules', 'ownerName', 'contactPhone', 'contactEmail', 'whatsapp', 'images', 'availabilityStatus'
   ];
   for (const f of fields) {
     if (Object.prototype.hasOwnProperty.call(body, f)) payload[f] = body[f];
@@ -170,9 +170,9 @@ const getPublicMesses = asyncHandler(async (req, res) => {
     limit = 12
   } = req.query;
 
-  const query = { approvalStatus: 'approved', availabilityStatus: 'available' };
+  const query = { approvalStatus: 'approved' };
 
-  // Text/location search (case-insensitive, handles autocomplete strings like "Midnapore (Medinipur)" & synonyms)
+  // Text/location search (case-insensitive, prioritizes exact/particular mess name when a mess name is searched)
   const expandLocationSynonyms = (raw) => {
     const terms = new Set();
     const cleaned = String(raw || '').trim();
@@ -190,21 +190,30 @@ const getPublicMesses = asyncHandler(async (req, res) => {
     return Array.from(terms);
   };
 
+  // Normalize string case-insensitively by removing dots (so "P.G." -> "pg") and punctuation for mess name comparison
+  const normalizeNameForCompare = (s) => String(s || '').toLowerCase().replace(/\./g, '').replace(/[\-_,'()/]+/g, ' ').replace(/\s+/g, ' ').trim();
+
+  // Hero Search (`search`): Strictly matches ONLY Mess Name (case-insensitive, punctuation-tolerant)
   const searchText = String(search || '').trim();
   if (searchText) {
-    const searchVariants = expandLocationSynonyms(searchText);
-    const searchOr = [];
-    searchVariants.forEach(term => {
-      const regex = new RegExp(escapeRegex(term), 'i');
-      searchOr.push(
-        { name: regex }, { area: regex }, { address: regex }, { city: regex }, { description: regex },
-        { accommodationType: regex }, { gender: regex },
-        { foodType: regex }, { foodPreference: regex }, { roomType: regex }, { roomSharing: regex },
-        { facilities: { $elemMatch: { $regex: regex } } },
-        { 'nearby.college': regex }, { 'nearby.busStand': regex }, { 'nearby.railwayStation': regex }
-      );
-    });
-    query.$and = [...(query.$and || []), { $or: searchOr }];
+    const normSearch = normalizeNameForCompare(searchText);
+    const allActiveMesses = await Mess.find({ approvalStatus: 'approved' }).select('_id name');
+
+    // 1. Check exact mess name match first (case-insensitive)
+    const exactNameMatches = allActiveMesses.filter(m => normalizeNameForCompare(m.name) === normSearch);
+
+    if (exactNameMatches.length > 0) {
+      query._id = { $in: exactNameMatches.map(m => m._id) };
+    } else {
+      // 2. Partial mess name match (case-insensitive, e.g. "puspak", "UTTARAN", "silver spring", "manjusri")
+      const searchTokens = normSearch.split(' ').filter(Boolean);
+      const partialNameMatches = allActiveMesses.filter(m => {
+        const nm = normalizeNameForCompare(m.name);
+        if (nm.includes(normSearch)) return true;
+        return searchTokens.length > 0 && searchTokens.every(tok => nm.includes(tok));
+      });
+      query._id = { $in: partialNameMatches.map(m => m._id) };
+    }
   }
 
   // Location filter is applied independently of the hero search (so both can be combined).
@@ -396,7 +405,28 @@ const deleteMyMess = asyncHandler(async (req, res) => {
   res.json({ success: true, message: 'Mess listing deleted.' });
 });
 
+const syncLiveLocation = asyncHandler(async (req, res) => {
+  const mess = await Mess.findById(req.params.id).populate('owner', 'name phone email ownerVerified role');
+  if (!mess) return res.status(404).json({ success: false, message: 'Mess listing not found.' });
+  const { lat, lng, address, area, city } = req.body || {};
+  const nLat = Number(lat);
+  const nLng = Number(lng);
+  if (Number.isNaN(nLat) || Number.isNaN(nLng)) {
+    return res.status(400).json({ success: false, message: 'Valid latitude and longitude are required.' });
+  }
+  mess.location = {
+    lat: nLat,
+    lng: nLng,
+    mapUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${nLat},${nLng}`)}`
+  };
+  if (address && String(address).trim()) mess.address = String(address).trim();
+  if (area && String(area).trim()) mess.area = String(area).trim();
+  if (city && String(city).trim()) mess.city = String(city).trim();
+  await mess.save();
+  res.json({ success: true, message: 'Live current location synced.', data: mess });
+});
+
 module.exports = {
   getPublicMesses, getPublicMessById, getFeaturedMesses, getRecentMesses,
-  createMess, getMyMesses, updateMyMess, deleteMyMess
+  createMess, getMyMesses, updateMyMess, deleteMyMess, syncLiveLocation
 };

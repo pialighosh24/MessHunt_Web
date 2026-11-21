@@ -3,7 +3,7 @@ const { optionalAuth, protect } = require('../middleware/auth');
 const { authorize } = require('../middleware/role');
 const {
   getPublicMesses, getPublicMessById, getFeaturedMesses, getRecentMesses,
-  createMess, getMyMesses, updateMyMess, deleteMyMess
+  createMess, getMyMesses, updateMyMess, deleteMyMess, syncLiveLocation
 } = require('../controllers/messController');
 const { getMessReviews, createReview } = require('../controllers/reviewController');
 const { createBooking } = require('../controllers/bookingController');
@@ -22,6 +22,7 @@ router.get('/owner/mine', protect, authorize('owner'), getMyMesses);
 
 // Public details and nested resources
 router.get('/:id', optionalAuth, getPublicMessById);
+router.post('/:id/live-location', optionalAuth, syncLiveLocation);
 router.get('/:messId/reviews', optionalAuth, getMessReviews);
 
 // Student/User actions

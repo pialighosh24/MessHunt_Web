@@ -15,6 +15,12 @@ function val(v) {
 }
 function money(v) { return (v === null || v === undefined || v === '') ? 'Not specified' : `₹${Number(v)}` }
 function accType(m) { return m?.accommodationType || (m?.gender === 'Co-ed' ? 'Unisex' : m?.gender) || 'Not specified' }
+function normImg(raw) {
+  const s = String(raw || '').trim()
+  if (!s) return '/assets/logo.svg'
+  if (s.startsWith('http://') || s.startsWith('https://') || s.startsWith('data:') || s.startsWith('/')) return s
+  return `/${s}`
+}
 
 function InfoRow({ k, v }) {
   return <div className="row"><div className="k">{k}</div><div className="v">{val(v)}</div></div>
@@ -105,7 +111,7 @@ export default function DetailsPage() {
   }, [mess])
 
   useEffect(() => {
-    const images = (mess?.images && mess.images.length) ? mess.images : []
+    const images = (mess?.images && mess.images.length) ? mess.images.map(normImg) : []
     if (images.length) { setMainImage(images[0]); setActiveThumb(0) }
     else { setMainImage('/assets/logo.svg'); setActiveThumb(0) }
   }, [mess])
@@ -215,10 +221,11 @@ export default function DetailsPage() {
 
   const locParts = [mess.address, mess.area, mess.city].filter(Boolean)
   const loc = locParts.join(', ') || 'Not specified'
-  const images = (mess.images && mess.images.length) ? mess.images : []
-  const phone = mess.contactPhone || mess.owner?.phone || ''
-  const whatsapp = mess.whatsapp || phone || ''
-  const email = mess.contactEmail || mess.owner?.email || ''
+  const images = (mess.images && mess.images.length) ? mess.images.map(normImg) : []
+  const ownerDisplayName = String(mess.ownerName || '').trim() || `${mess.name} (Proprietor)`
+  const phone = String(mess.contactPhone || '').trim()
+  const whatsapp = String(mess.whatsapp || phone || '').trim()
+  const email = String(mess.contactEmail || '').trim()
   const waNum = (whatsapp || '').replace(/[^0-9]/g, '')
   const lat = mess.location?.lat
   const lng = mess.location?.lng
@@ -358,15 +365,31 @@ export default function DetailsPage() {
         <div className="info-section">
           <h2>Owner & Contact Information</h2>
           <div className="info-table">
-            <InfoRow k="Owner Name" v={mess.owner?.name} />
-            <InfoRow k="Phone" v={phone} />
-            <InfoRow k="WhatsApp" v={whatsapp} />
-            <InfoRow k="Email" v={email} />
+            <InfoRow k="Owner / Proprietor" v={ownerDisplayName} />
+            <div className="row">
+              <div className="k">Phone</div>
+              <div className="v">
+                {phone ? <a href={`tel:${phone}`} style={{ color: 'var(--primary)', fontWeight: 700, textDecoration: 'underline' }}>📞 +91 {phone}</a> : 'Not publicly listed on Google Maps'}
+              </div>
+            </div>
+            <div className="row">
+              <div className="k">WhatsApp</div>
+              <div className="v">
+                {waNum ? <a target="_blank" rel="noopener noreferrer" href={`https://wa.me/91${waNum}`} style={{ color: '#15803d', fontWeight: 600 }}>💬 +91 {whatsapp}</a> : 'Not publicly listed on Google Maps'}
+              </div>
+            </div>
+            <div className="row">
+              <div className="k">Email</div>
+              <div className="v">
+                {email ? <a href={`mailto:${email}`} style={{ color: 'var(--primary)', fontWeight: 600, textDecoration: 'underline' }}>✉️ {email}</a> : 'Not publicly listed on Google Maps'}
+              </div>
+            </div>
           </div>
-          <div className="contact-links" style={{ marginTop: '10px' }}>
-            {phone ? <a className="btn btn-light" href={`tel:${phone}`}>Call</a> : null}
-            {waNum ? <a className="btn btn-light" target="_blank" rel="noopener noreferrer" href={`https://wa.me/91${waNum}`}>WhatsApp</a> : null}
-            {email ? <a className="btn btn-light" href={`mailto:${email}`}>Email</a> : null}
+          <div className="contact-links" style={{ marginTop: '12px', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+            {phone ? <a className="btn btn-primary" href={`tel:${phone}`}>📞 Call Owner (+91 {phone})</a> : null}
+            {waNum ? <a className="btn btn-light" target="_blank" rel="noopener noreferrer" href={`https://wa.me/91${waNum}`}>💬 WhatsApp Owner</a> : null}
+            {email ? <a className="btn btn-light" href={`mailto:${email}`}>✉️ Email Owner ({email})</a> : null}
+            {!phone && mapLink ? <a className="btn btn-light" target="_blank" rel="noopener noreferrer" href={mapLink}>🔎 View on Google Maps</a> : null}
           </div>
         </div>
       </section>

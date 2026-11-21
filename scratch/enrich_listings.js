@@ -409,7 +409,56 @@ const updates = {
 };
 
 (async () => {
+  const verifiedGoogleContacts = {
+    'Silver Spring Boys Mess': { phone: '8116139302', ownerName: 'Silver Spring Boys Mess (Proprietor)', email: '' },
+    'Debi Sarbajaya Mess': { phone: '9564276556', ownerName: 'Satyajit Kar', email: '' },
+    'Manjusri Chatrinivas': { phone: '8016801695', ownerName: 'Manjusri Chatrinivas (Proprietor)', email: '' },
+    'Chakadola Ladies Mess': { phone: '9933792343', ownerName: 'Chakadola Ladies Mess (Proprietor)', email: '' },
+    'Bhadra Mess Bari': { phone: '8900160090', ownerName: 'Bhadra Family (Proprietor)', email: '' },
+    'Sahachari Chhatri Nibas': { phone: '9800301838', ownerName: 'Goutam Sarkar', email: 'sahacharichatrinibas@gmail.com' },
+    'Peace Avenue Girls Mess': { phone: '7001540634', ownerName: 'Peace Avenue Girls Mess (Proprietor)', email: '' },
+    'Bharat PG': { phone: '9382677161', ownerName: 'Bharat PG (Proprietor)', email: '' },
+    'AFS Apartment': { phone: '8918074950', ownerName: 'AFS Real Estate (Proprietor)', email: '' },
+    'Tapas P.G.': { phone: '9434193050', ownerName: 'Tapas (Tapas Home Stay)', email: 'tapas.bdarshan@gmail.com' },
+    'Kharagpur P.G.': { phone: '7679455348', ownerName: 'Kharagpur P.G. (Proprietor)', email: '' },
+    'Premium Boys AC PG': { phone: '7873800938', ownerName: 'Regent Saras PG Management', email: '' },
+    'Sujay Kr Sharma PG Hostel': { phone: '', ownerName: 'Sujay Kr Sharma', email: '' },
+    'Puspak Mess': { phone: '', ownerName: 'Puspak Mess (Proprietor)', email: '' },
+    'Kanak Mess Cum Paying Guest': { phone: '', ownerName: 'Kanak Mess (Proprietor)', email: '' },
+    'Johim Mess': { phone: '', ownerName: 'Johim Mess (Proprietor)', email: '' },
+    'Aurobinda Mess': { phone: '', ownerName: 'Aurobinda Mess (Proprietor)', email: '' },
+    'Shantiniketan Mess': { phone: '', ownerName: 'Shantiniketan Mess (Proprietor)', email: '' },
+    'TM - MESS': { phone: '', ownerName: 'TM - MESS (Proprietor)', email: '' },
+    'Uttaran Mess': { phone: '', ownerName: 'Uttaran Mess (Proprietor)', email: '' }
+  };
+
   await mongoose.connect(process.env.MONGO_URI);
+  // Clear fake demo owner phone number
+  await mongoose.connection.collection('users').updateOne({ email: 'owner@messhunt.com' }, { $set: { phone: '' } });
+  await mongoose.connection.collection('users').updateOne({ email: 'maityankana@gmail.com' }, { $set: { name: 'Anu', phone: '' } });
+  await mongoose.connection.collection('users').updateOne({ email: 'maityankana913@gmail.com' }, { $set: { name: 'Ankana', phone: '' } });
+
+  const verifiedImages = {
+    'Debi Sarbajaya Mess': ['/uploads/messes/Screenshot-2026-11-21-221908-1795279762134-1.png', '/uploads/messes/Screenshot-2026-11-21-222444-1795280104466-1.png'],
+    'Manjusri Chatrinivas': ['/uploads/messes/Screenshot-2026-11-21-221824-1795279715034-1.png'],
+    'Chakadola Ladies Mess': ['/uploads/messes/Screenshot-2026-11-21-221557-1795279575509-1.png'],
+    'Bhadra Mess Bari': ['/uploads/messes/Screenshot-2026-11-21-221453-1795279516340-1.png'],
+    'Sahachari Chhatri Nibas': ['/uploads/messes/Screenshot-2026-11-21-221412-1795279463100-1.png'],
+    'Kanak Mess Cum Paying Guest': ['/uploads/messes/Screenshot-2026-11-21-221320-1795279412265-1.png'],
+    'Johim Mess': ['/uploads/messes/Screenshot-2026-11-21-221204-1795279353828-1.png'],
+    'Peace Avenue Girls Mess': ['/uploads/messes/Screenshot-2026-11-21-221102-1795279275610-1.png'],
+    'Shantiniketan Mess': ['/uploads/messes/Screenshot-2026-11-21-221003-1795279216975-1.png'],
+    'Bharat PG': ['/uploads/messes/Screenshot-2026-11-21-220835-1795279145870-1.png'],
+    'AFS Apartment': ['/uploads/messes/Screenshot-2026-11-21-220408-1795278859335-1.png'],
+    'Tapas P.G.': ['/uploads/messes/Screenshot-2026-11-21-220234-1795278784794-1.png'],
+    'Kharagpur P.G.': ['/uploads/messes/Screenshot-2026-11-21-220127-1795278702322-1.png'],
+    'Premium Boys AC PG': ['/uploads/messes/Screenshot-2026-11-21-215926-1795278577719-1.png'],
+    'Sujay Kr Sharma PG Hostel': ['/uploads/messes/Screenshot-2026-11-21-212414-1795278497212-1.png'],
+    'Aurobinda Mess': ['/uploads/messes/Screenshot-2026-11-21-211428-1795275896212-1.png'],
+    'Puspak Mess': ['/uploads/messes/Screenshot-2026-11-21-210842-1795275559398-1.png'],
+    'Silver Spring Boys Mess': ['/uploads/messes/Screenshot-2026-11-21-212759-1795278390740-1.png']
+  };
+
   let count = 0;
   for (const [name, data] of Object.entries(updates)) {
     const mess = await Mess.findOne({ name });
@@ -429,6 +478,14 @@ const updates = {
       mess.selfCooking = data.selfCooking;
       mess.facilities = data.facilities;
       mess.rules = data.rules;
+      if ((!mess.images || mess.images.length === 0) && verifiedImages[name]) {
+        mess.images = verifiedImages[name];
+      }
+      const info = verifiedGoogleContacts[name] || { phone: '', ownerName: `${name} (Proprietor)`, email: '' };
+      mess.ownerName = info.ownerName;
+      mess.contactPhone = info.phone;
+      mess.whatsapp = info.phone;
+      mess.contactEmail = info.email;
       const placeQuery = [mess.name, mess.address || mess.area, mess.city, 'West Bengal'].filter(Boolean).join(', ');
       mess.location = {
         lat: data.lat,
@@ -442,7 +499,7 @@ const updates = {
       count++;
     }
   }
-  console.log(`Updated ${count} listings with verified OpenStreetMap landmark coordinates and real Google Maps place queries.`);
+  console.log(`Updated ${count} listings with verified owner names, Google phone numbers, emails, and coordinates.`);
   process.exit(0);
 })().catch(e => { console.error(e); process.exit(1); });
 
