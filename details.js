@@ -16,6 +16,30 @@
   function accType(m) { return m.accommodationType || (m.gender === 'Co-ed' ? 'Unisex' : m.gender) || 'Not specified'; }
 
   async function loadMess() {
+    if (!user()) {
+      document.getElementById('galleryPanel').style.display = 'none';
+      document.getElementById('detailsInfoPanel').style.display = 'none';
+      document.getElementById('locationPanel').style.display = 'none';
+      document.getElementById('reviewsPanel').style.display = 'none';
+      document.getElementById('bookingPanel').style.display = 'none';
+      document.getElementById('messHeaderPanel').innerHTML = `
+        <div style="text-align:center;padding:28px 16px;">
+          <span class="demo-pill-badge" style="margin:0 auto 12px;">🔒 LOGIN REQUIRED</span>
+          <h1 style="font-size:1.8rem;margin-bottom:8px;">Login Required to View Real Mess Details</h1>
+          <p style="max-width:580px;margin:0 auto 18px;">
+            Without login, visitors can only view the Demo Mode showcase. Please login using the popup box to view real mess details, photos, owner contacts, map location, and booking options.
+          </p>
+          <div style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap;">
+            <button type="button" class="btn btn-primary" id="detailsOpenLoginPopupBtn">🔑 Open Login Pop-Up Box</button>
+            <a class="btn btn-demo-nav" href="demo.html">✨ Explore Demo Mode (No Login)</a>
+          </div>
+        </div>`;
+      document.getElementById('detailsOpenLoginPopupBtn')?.addEventListener('click', () => {
+        MHUI.showLoginModal?.('Please login to unlock real mess details, photos, owner contacts, and booking requests.');
+      });
+      MHUI.showLoginModal?.('Please login to view real mess details, photos, owner contact numbers, and booking requests. Without login, only Demo Mode is available.');
+      return;
+    }
     if (!messId) {
       document.getElementById('messHeaderPanel').innerHTML = '<div class="error-state">Invalid listing URL (missing id).</div>';
       return;
@@ -53,7 +77,7 @@
           <span class="badge ${m.availabilityStatus === 'available' ? 'success' : 'gray'}">${MHUI.escapeHtml(m.availabilityStatus === 'available' ? 'Available' : 'Unavailable')}</span>
           <span class="badge warn">⭐ ${Number(m.averageRating || 0).toFixed(1)} (${Number(m.reviewCount || 0)})</span>
           ${isStudent() ? `<button class="btn btn-light" id="favToggleBtn">❤ Favourite</button>` : ''}
-          ${isStudent() ? `<button class="btn btn-light" id="reportListingBtn">Report Listing</button>` : ''}
+          ${user() ? `<button class="btn btn-light" id="reportListingBtn">Report Listing</button>` : ''}
         </div>
       </div>
       <p>${MHUI.escapeHtml(m.description || 'No description provided.')}</p>`;
@@ -88,6 +112,8 @@
     const email = String(m.contactEmail || '').trim();
     const waNum = (whatsapp || '').replace(/[^0-9]/g, '');
 
+    const roomsLabel = (m.totalRooms !== null && m.totalRooms !== undefined && m.totalRooms !== '') ? `${m.totalRooms} Rooms` : 'Not specified';
+
     panel.innerHTML = `
       <div class="info-section">
         <h2>Basic Information</h2>
@@ -97,6 +123,7 @@
           ${infoRow('Town/City', m.city)}
           ${infoRow('Area/Locality', m.area)}
           ${infoRow('Accommodation Type', accType(m))}
+          ${infoRow('No. of Rooms', roomsLabel)}
           ${infoRow('Monthly Rent', money(m.price))}
           ${infoRow('Security Deposit', money(m.securityDeposit))}
           ${infoRow('Current Availability', m.availabilityStatus === 'available' ? 'Available' : 'Unavailable')}
@@ -108,6 +135,7 @@
         <h2>Room Information</h2>
         <div class="info-table">
           ${infoRow('Room Sharing', m.roomSharing || m.roomType)}
+          ${infoRow('No. of Rooms', roomsLabel)}
           ${infoRow('Furnishing', m.furnishing)}
           ${infoRow('Bathroom', m.bathroomType)}
         </div>
@@ -422,5 +450,8 @@
   document.addEventListener('DOMContentLoaded', () => {
     MHUI.renderNavAuth('navAuthArea');
     loadMess();
+    window.addEventListener('mh-auth-change', () => {
+      loadMess();
+    });
   });
 })();

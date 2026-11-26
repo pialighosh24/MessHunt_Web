@@ -8,7 +8,7 @@ export default function Footer() {
         </div>
         <p>Student mess and accommodation discovery platform for Paschim Medinipur.</p>
       </div>
-      <div className="footer-bottom">© 2026 MessHunt • BCA Final Year Project</div>
+      <div className="footer-bottom">© 2026 MessHunt • Contact: <a className="inline-link" href="mailto:studentmesshunt@gmail.com">studentmesshunt@gmail.com</a></div>
     </footer>
   )
 }

@@ -72,7 +72,7 @@
   </main>
 
   <script src="js/api.js"></script>
-  <script src="js/common.js"></script>
+  <script src="js/common.js?v=8"></script>
   <script>
     (function(){
       let currentUser = null;
@@ -148,7 +148,8 @@
               </div>
               <div class="form-actions">
                 ${b.mess?._id ? `<a class="btn btn-light" href="details.html?id=${encodeURIComponent(b.mess._id)}">View Mess</a>`:''}
-                ${b.status === 'pending' || b.status === 'accepted' ? `<button class="btn btn-danger" data-cancel-booking="${MHUI.escapeHtml(b._id)}">Cancel Request</button>`:''}
+                ${b.status === 'pending' || b.status === 'accepted' ? `<button class="btn btn-light" data-cancel-booking="${MHUI.escapeHtml(b._id)}">Cancel Request</button>`:''}
+                <button class="btn btn-danger" data-delete-booking="${MHUI.escapeHtml(b._id)}">Delete</button>
               </div>
             </div>`).join('');
           el.querySelectorAll('[data-cancel-booking]').forEach(btn => btn.addEventListener('click', async () => {
@@ -157,6 +158,13 @@
               await MHApi.request(`/api/bookings/${encodeURIComponent(btn.getAttribute('data-cancel-booking'))}/status`, { method:'PATCH', body: JSON.stringify({ status:'cancelled' }) });
               MHUI.showToast('Booking cancelled', 'success'); loadBookings();
             } catch(e){ MHUI.showToast(e.message || 'Failed', 'error'); }
+          }));
+          el.querySelectorAll('[data-delete-booking]').forEach(btn => btn.addEventListener('click', async () => {
+            if (!confirm('Delete this booking request permanently?')) return;
+            try {
+              await MHApi.request(`/api/bookings/${encodeURIComponent(btn.getAttribute('data-delete-booking'))}`, { method:'DELETE' });
+              MHUI.showToast('Booking request deleted', 'success'); loadBookings();
+            } catch(e){ MHUI.showToast(e.message || 'Failed to delete booking', 'error'); }
           }));
         } catch(e){ el.innerHTML = `<div class="error-state">${MHUI.escapeHtml(e.message || 'Failed to load bookings')}</div>`; }
       }

@@ -115,6 +115,15 @@ export default function StudentDashboard() {
     } catch (e) { showToast(e.message || 'Failed', 'error') }
   }
 
+  const deleteBooking = async (bookingId) => {
+    if (!window.confirm('Delete this booking request permanently?')) return
+    try {
+      await MHApi.request(`/api/bookings/${encodeURIComponent(bookingId)}`, { method: 'DELETE' })
+      showToast('Booking request deleted', 'success')
+      loadBookings()
+    } catch (e) { showToast(e.message || 'Failed to delete booking', 'error') }
+  }
+
   const refreshFavs = async (e) => {
     const btn = e.currentTarget
     btn.disabled = true; btn.textContent = 'Refreshing...'
@@ -217,7 +226,8 @@ export default function StudentDashboard() {
                 </div>
                 <div className="form-actions">
                   {b.mess?._id ? <a className="btn btn-light" href={`/details.html?id=${encodeURIComponent(b.mess._id)}`}>View Mess</a> : null}
-                  {(b.status === 'pending' || b.status === 'accepted') ? <button className="btn btn-danger" onClick={() => cancelBooking(b._id)}>Cancel Request</button> : null}
+                  {(b.status === 'pending' || b.status === 'accepted') ? <button className="btn btn-light" onClick={() => cancelBooking(b._id)}>Cancel Request</button> : null}
+                  <button className="btn btn-danger" onClick={() => deleteBooking(b._id)}>Delete</button>
                 </div>
               </div>
             ))}

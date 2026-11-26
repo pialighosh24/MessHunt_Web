@@ -6,17 +6,18 @@ const Review = require('../models/Review');
 const asyncHandler = require('../utils/asyncHandler');
 
 const getOwnerDashboard = asyncHandler(async (req, res) => {
-  const allMesses = await Mess.find({}).select('_id');
-  const messIds = allMesses.map(m => m._id);
+  const ownerFilter = req.user.role === 'admin' ? {} : { owner: req.user._id };
+  const myMesses = await Mess.find(ownerFilter).select('_id');
+  const messIds = myMesses.map(m => m._id);
 
   const [total, approved, pending, rejected, suspended, available, unavailable, bookings, pendingBookings, reviews] = await Promise.all([
-    Mess.countDocuments({}),
-    Mess.countDocuments({ approvalStatus: 'approved' }),
-    Mess.countDocuments({ approvalStatus: 'pending' }),
-    Mess.countDocuments({ approvalStatus: 'rejected' }),
-    Mess.countDocuments({ approvalStatus: 'suspended' }),
-    Mess.countDocuments({ availabilityStatus: 'available' }),
-    Mess.countDocuments({ availabilityStatus: 'unavailable' }),
+    Mess.countDocuments(ownerFilter),
+    Mess.countDocuments({ ...ownerFilter, approvalStatus: 'approved' }),
+    Mess.countDocuments({ ...ownerFilter, approvalStatus: 'pending' }),
+    Mess.countDocuments({ ...ownerFilter, approvalStatus: 'rejected' }),
+    Mess.countDocuments({ ...ownerFilter, approvalStatus: 'suspended' }),
+    Mess.countDocuments({ ...ownerFilter, availabilityStatus: 'available' }),
+    Mess.countDocuments({ ...ownerFilter, availabilityStatus: 'unavailable' }),
     Booking.countDocuments({ mess: { $in: messIds } }),
     Booking.countDocuments({ mess: { $in: messIds }, status: 'pending' }),
     Review.countDocuments({ mess: { $in: messIds }, isHidden: { $ne: true } }),
@@ -33,8 +34,9 @@ const getOwnerDashboard = asyncHandler(async (req, res) => {
 });
 
 const getOwnerBookings = asyncHandler(async (req, res) => {
-  const allMesses = await Mess.find({}).select('_id');
-  const messIds = allMesses.map(m => m._id);
+  const ownerFilter = req.user.role === 'admin' ? {} : { owner: req.user._id };
+  const myMesses = await Mess.find(ownerFilter).select('_id');
+  const messIds = myMesses.map(m => m._id);
   const bookings = await Booking.find({ mess: { $in: messIds } })
     .populate('mess', 'name address area city price images contactPhone')
     .populate('student', 'name email phone')
@@ -44,8 +46,9 @@ const getOwnerBookings = asyncHandler(async (req, res) => {
 });
 
 const getOwnerReviews = asyncHandler(async (req, res) => {
-  const allMesses = await Mess.find({}).select('_id name');
-  const messIds = allMesses.map(m => m._id);
+  const ownerFilter = req.user.role === 'admin' ? {} : { owner: req.user._id };
+  const myMesses = await Mess.find(ownerFilter).select('_id name');
+  const messIds = myMesses.map(m => m._id);
   const reviews = await Review.find({ mess: { $in: messIds }, isHidden: { $ne: true } })
     .populate('user', 'name email phone role')
     .populate('mess', 'name area city price')

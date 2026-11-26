@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Demo Mode — Dream Mess | MessHunt</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="details.css" />
+</head>
+<body>
+  <header class="navbar">
+    <a href="index.html" class="brand" aria-label="MessHunt Home">
+      <img src="assets/logo.svg" alt="MessHunt" class="brand-logo" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+      <div class="brand-fallback" style="display:none;">
+        <span class="brand-name">Mess<span>Hunt</span></span>
+        <span class="brand-tagline">Find Your Perfect Mess</span>
+      </div>
+    </a>
+    <nav class="desktop-nav">
+      <a href="index.html">Home</a>
+      <a href="index.html#explore">Real Listings</a>
+    </nav>
+    <div class="nav-actions" id="navAuthArea"></div>
+  </header>
+
+  <main class="details-layout">
+    <div class="demo-mode-banner" role="region" aria-label="Demo Mode Notice">
+      <div class="demo-mode-banner-left">
+        <span class="demo-pill-badge">✨ DEMO MODE • SAMPLE DATA</span>
+        <div>
+          <strong>Interactive Demo Showcase — Dream Mess ("Feel Like Home...")</strong>
+          <p>This is a dedicated sample listing for visitors to explore photographs, room &amp; food details, owner contact options, and map location without logging in. Kept completely separate from real owner listings.</p>
+        </div>
+      </div>
+      <div class="demo-mode-banner-actions">
+        <a class="btn btn-light" href="index.html#explore">← Back to Real Listings</a>
+      </div>
+    </div>
+
+    <section class="panel" id="messHeaderPanel">
+      <div class="page-header" style="margin-bottom:8px;">
+        <div>
+          <div class="eyebrow" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <span>DEMO MESS SHOWCASE • GIRLS ACCOMMODATION</span>
+            <span class="demo-tag-inline">SAMPLE LISTING</span>
+          </div>
+          <h1 style="margin-bottom:4px;">Dream Mess <span style="font-size:1.05rem;font-weight:500;color:var(--muted);">— Feel Like Home...</span></h1>
+          <p id="demoHeaderAddress">📍 Near Kharagpur College, Inda, Kharagpur - 721305, West Bengal</p>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <span class="badge warn">DEMO DATA</span>
+          <span class="badge success">Available (5 of 12 Single Rooms Open)</span>
+          <span class="badge" style="background:#fce7f3;color:#9d174d;">Girls Only</span>
+          <span class="badge warn">⭐ 4.9 (Demo Preview)</span>
+        </div>
+      </div>
+      <p><strong>Dream Mess ("Feel Like Home...")</strong> is a safe, well-maintained 3-storey girls mess accommodation managed by <strong>Ankana Maity</strong>. It offers furnished <strong>Single</strong> occupancy rooms, a clean dining hall serving fresh home-style meals, a self-cooking student kitchen with LPG gas &amp; utensils, 24/7 water supply, high-speed Wi-Fi, and CCTV security near college campus.</p>
+    </section>
+
+    <section class="panel" id="galleryPanel">
+      <div class="panel-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+        <div>
+          <h2 style="margin-bottom:2px;">Mess, Room, Dining &amp; Kitchen Photographs (5 Separate Views)</h2>
+          <p class="small-note" style="margin:0;">Click the <strong>&lt;</strong> or <strong>&gt;</strong> buttons (or any thumbnail below) to view each photograph separately.</p>
+        </div>
+        <span class="demo-photo-counter" id="demoPhotoCounter">1 / 5 • Building Exterior &amp; Front Gate</span>
+      </div>
+
+      <div class="demo-carousel-stage">
+        <button type="button" class="demo-carousel-arrow prev" id="demoPrevBtn" aria-label="Previous photograph" title="Previous photo (<)">&#10094;</button>
+        <div class="demo-carousel-image-wrap">
+          <img id="ambientGalleryImage" class="demo-carousel-ambient-bg" src="uploads/demo/dream-mess-exterior.jpg?v=hd" alt="" aria-hidden="true">
+          <img id="mainGalleryImage" class="demo-carousel-main-img" src="uploads/demo/dream-mess-exterior.jpg?v=hd" alt="Dream Mess photograph">
+          <div class="demo-carousel-caption-bar">
+            <span id="demoPhotoCaption">Photo 1 of 5 • Dream Mess ("Feel Like Home...") — 3-Storey Girls Mess Building Exterior</span>
+            <span class="demo-tag-inline">HD DEMO PHOTO</span>
+          </div>
+        </div>
+        <button type="button" class="demo-carousel-arrow next" id="demoNextBtn" aria-label="Next photograph" title="Next photo (>)">&#10095;</button>
+      </div>
+
+      <div style="display:flex;justify-content:center;gap:10px;margin-top:12px;flex-wrap:wrap;">
+        <button type="button" class="btn btn-light" id="demoPrevBtnBottom">← Previous Photo (&lt;)</button>
+        <button type="button" class="btn btn-primary" id="demoNextBtnBottom">Next Photo (&gt;) →</button>
+      </div>
+
+      <div id="thumbRow" class="demo-thumb-grid" style="margin-top:14px;"></div>
+    </section>
+
+    <section class="panel info-sections" id="detailsInfoPanel">
+      <div class="info-section">
+        <h2>Basic Information <span class="demo-tag-inline">DEMO DATA</span></h2>
+        <div class="info-table">
+          <div class="row"><div class="k">Mess / Hostel Name</div><div class="v">Dream Mess (Feel Like Home...) <span class="demo-tag-inline">SAMPLE</span></div></div>
+          <div class="row"><div class="k">Accommodation Type</div><div class="v">Girls (Female Students Only)</div></div>
+          <div class="row"><div class="k">Room Sharing</div><div class="v">Single Occupancy</div></div>
+          <div class="row"><div class="k">No. of Rooms</div><div class="v">12 Single Rooms (5 Rooms Currently Available)</div></div>
+          <div class="row"><div class="k">Monthly Rent</div><div class="v">₹3,500 / month</div></div>
+          <div class="row"><div class="k">Security Deposit</div><div class="v">₹3,000 (Refundable)</div></div>
+          <div class="row"><div class="k">Full Address</div><div class="v" id="demoInfoAddress">Near Kharagpur College, Inda, Kharagpur - 721305, West Bengal</div></div>
+          <div class="row"><div class="k">Town / City</div><div class="v" id="demoInfoCity">Kharagpur</div></div>
+          <div class="row"><div class="k">Area / Locality</div><div class="v" id="demoInfoArea">Inda (Near Kharagpur College)</div></div>
+          <div class="row"><div class="k">Current Availability</div><div class="v">Available</div></div>
+        </div>
+      </div>
+
+      <div class="info-section">
+        <h2>Room Information</h2>
+        <div class="info-table">
+          <div class="row"><div class="k">Room Sharing</div><div class="v">Single</div></div>
+          <div class="row"><div class="k">No. of Rooms</div><div class="v">12 Furnished Rooms across 3 Floors (4 Rooms per Floor)</div></div>
+          <div class="row"><div class="k">Furnishing</div><div class="v">Fully Furnished (Wooden Bed, Mattress, Pillow, Study Table, Chair, Curtains, Ceiling Fan, LED Tube Light &amp; Wall Shelves)</div></div>
+          <div class="row"><div class="k">Bathroom Type</div><div class="v">Attached &amp; Clean Common Bathrooms (24/7 Running Water)</div></div>
+        </div>
+      </div>
+
+      <div class="info-section">
+        <h2>Self-Cooking &amp; Kitchen Facilities</h2>
+        <div class="info-table">
+          <div class="row"><div class="k">Self-Cooking Facility</div><div class="v">Available (Dedicated Student Kitchen Shown in Photo 5)</div></div>
+          <div class="row"><div class="k">Kitchen Access</div><div class="v">Allowed for All Residents</div></div>
+          <div class="row"><div class="k">Cooking Gas (LPG)</div><div class="v">Available (Double-Burner Gas Stove with Cylinder)</div></div>
+          <div class="row"><div class="k">Induction &amp; Utensils</div><div class="v">Allowed (Stainless Steel Utensil Rack &amp; Sink Available)</div></div>
+        </div>
+      </div>
+
+      <div class="info-section">
+        <h2>Food &amp; Dining Hall Information</h2>
+        <div class="info-table">
+          <div class="row"><div class="k">Food Included</div><div class="v">Included in Monthly Rent (Hygienic Mess Dining Hall Shown in Photo 4)</div></div>
+          <div class="row"><div class="k">Food Preference</div><div class="v">Both (Veg &amp; Non-Veg Home-Style Meals)</div></div>
+          <div class="row"><div class="k">Breakfast</div><div class="v">Available (7:30 AM – 9:30 AM)</div></div>
+          <div class="row"><div class="k">Lunch</div><div class="v">Available (12:30 PM – 2:30 PM)</div></div>
+          <div class="row"><div class="k">Dinner</div><div class="v">Available (8:30 PM – 10:00 PM)</div></div>
+        </div>
+      </div>
+
+      <div class="info-section">
+        <h2>Main Facilities &amp; Utilities</h2>
+        <div class="info-table">
+          <div class="row"><div class="k">Water Supply</div><div class="v">24/7 Running Water + RO Drinking Water</div></div>
+          <div class="row"><div class="k">Electricity Charges</div><div class="v">Included in Rent (24/7 Power Backup)</div></div>
+          <div class="row"><div class="k">Daily Cleaning</div><div class="v">Regular Room, Bathroom &amp; Dining Hall Sanitization</div></div>
+        </div>
+        <h3 style="margin-top:10px;">Included Facilities</h3>
+        <div class="facility-list">
+          <span class="facility-pill">High-Speed Wi-Fi</span>
+          <span class="facility-pill">Single Furnished Rooms</span>
+          <span class="facility-pill">Study Table &amp; Chair</span>
+          <span class="facility-pill">RO Drinking Water</span>
+          <span class="facility-pill">24/7 CCTV Security</span>
+          <span class="facility-pill">Spacious Dining Hall</span>
+          <span class="facility-pill">Self-Cooking Kitchen</span>
+          <span class="facility-pill">Attached Bathroom</span>
+          <span class="facility-pill">Power Backup</span>
+          <span class="facility-pill">Two-Wheeler Parking</span>
+        </div>
+      </div>
+
+      <div class="info-section">
+        <h2>Nearby Places &amp; Campus Connectivity</h2>
+        <div class="info-table">
+          <div class="row"><div class="k">Nearby College / University</div><div class="v" id="demoNearCollege">Kharagpur College &amp; IIT Kharagpur</div></div>
+          <div class="row"><div class="k">Nearby Bus Stand</div><div class="v" id="demoNearBus">Inda College More Bus Stop</div></div>
+          <div class="row"><div class="k">Nearby Railway Station</div><div class="v" id="demoNearRail">Kharagpur Junction Railway Station</div></div>
+        </div>
+      </div>
+
+      <div class="info-section">
+        <h2>Owner &amp; Contact Information <span class="demo-tag-inline">DIRECT OWNER CONTACT</span></h2>
+        <div class="info-table">
+          <div class="row"><div class="k">Owner / Proprietor Name</div><div class="v">Ankana Maity</div></div>
+          <div class="row"><div class="k">Mobile Number</div><div class="v"><a href="tel:9002843948" style="color:var(--primary);font-weight:700;text-decoration:underline;">📞 +91 9002843948</a></div></div>
+          <div class="row"><div class="k">WhatsApp</div><div class="v"><a target="_blank" rel="noopener" href="https://wa.me/919002843948" style="color:#15803d;font-weight:600;">💬 +91 9002843948</a></div></div>
+          <div class="row"><div class="k">Email Address</div><div class="v"><a href="mailto:maityankana@gmail.com" style="color:var(--primary);font-weight:600;text-decoration:underline;">✉️ maityankana@gmail.com</a></div></div>
+        </div>
+        <div class="contact-links" style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;">
+          <a class="btn btn-primary" href="tel:9002843948">📞 Call Owner (+91 9002843948)</a>
+          <a class="btn btn-light" target="_blank" rel="noopener" href="https://wa.me/919002843948">💬 WhatsApp Owner</a>
+          <a class="btn btn-light" href="mailto:maityankana@gmail.com">✉️ Email Owner (maityankana@gmail.com)</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="locationPanel">
+      <div class="panel-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+        <h2>Map &amp; Location (College / Current GPS Location)</h2>
+        <span class="demo-tag-inline">INTERACTIVE MAP</span>
+      </div>
+      <p id="demoMapAddress" style="margin-bottom:10px;">📍 Near Kharagpur College, Inda, Kharagpur - 721305, West Bengal</p>
+      <iframe id="demoMapFrame" class="map-frame" title="Dream Mess Demo Location" src="https://www.openstreetmap.org/export/embed.html?bbox=87.33170,22.35030,87.33970,22.35830&layer=mapnik&marker=22.3543,87.3357"></iframe>
+      <div class="form-actions" style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;">
+        <button type="button" class="btn btn-light" id="demoUseLiveGpsBtn">📍 Use My Current GPS Location</button>
+        <button type="button" class="btn btn-light" id="demoKgpLocBtn">🎓 Kharagpur College Location</button>
+        <button type="button" class="btn btn-light" id="demoVuLocBtn">🎓 Midnapore / V.U. College Location</button>
+        <a class="btn btn-primary" id="demoGoogleMapsLink" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=22.3543,87.3357">Open Exact Location in Google Maps</a>
+      </div>
+      <p id="demoCoordText" class="small-note" style="margin-top:8px;">Coordinates: 22.3543° N, 87.3357° E</p>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <img src="assets/logo.svg" alt="MessHunt" onerror="this.style.display='none'">
+        <span class="brand-name">Mess<span>Hunt</span></span>
+      </div>
+      <p>Find Your Perfect Mess</p>
+    </div>
+    <div class="footer-bottom">© 2026 MessHunt • Contact: <a class="inline-link" href="mailto:studentmesshunt@gmail.com">studentmesshunt@gmail.com</a></div>
+  </footer>
+
+  <script src="js/api.js"></script>
+  <script src="js/common.js?v=8"></script>
+  <script>
+    (function(){
+      MHUI.renderNavAuth('navAuthArea');
+      const photos = [
+        { src: 'uploads/demo/dream-mess-exterior.jpg', title: 'Building Exterior & Front Gate', caption: 'Photo 1 of 5 • Dream Mess ("Feel Like Home...") — 3-Storey Girls Mess Building Exterior' },
+        { src: 'uploads/demo/dream-mess-room-1.jpg', title: 'Single Furnished Room & Study Table', caption: 'Photo 2 of 5 • Spacious Single-Occupancy Room with Wooden Bed, Study Table, Chair, Window & Fan' },
+        { src: 'uploads/demo/dream-mess-room-2.jpg', title: 'Bright Student Bedroom Interior', caption: 'Photo 3 of 5 • Well-Ventilated Student Room with Beds, Storage Shelves, Curtains & Ceiling Fan' },
+        { src: 'uploads/demo/dream-mess-dining.jpg', title: 'Hygienic Mess Dining Hall', caption: 'Photo 4 of 5 • Spacious Common Dining Hall with Granite Tables, Steel Chairs & Ceiling Fans' },
+        { src: 'uploads/demo/dream-mess-kitchen.jpg', title: 'Self-Cooking Student Kitchen', caption: 'Photo 5 of 5 • Clean Kitchen Facility with LPG Gas Stove, Sink, Running Water & Utensil Racks' }
+      ];
+      let idx = 0;
+      const mainImg = document.getElementById('mainGalleryImage');
+      const counterEl = document.getElementById('demoPhotoCounter');
+      const captionEl = document.getElementById('demoPhotoCaption');
+      const thumbRow = document.getElementById('thumbRow');
+
+      function renderThumbs() {
+        thumbRow.innerHTML = photos.map((p, i) => `
+          <button type="button" class="demo-thumb-card ${i === idx ? 'active' : ''}" data-idx="${i}">
+            <img src="${p.src}" alt="${p.title}">
+            <span>${i + 1}. ${p.title}</span>
+          </button>`).join('');
+        thumbRow.querySelectorAll('[data-idx]').forEach(btn => {
+          btn.addEventListener('click', () => { idx = Number(btn.getAttribute('data-idx')); updateSlide(); });
+        });
+      }
+
+      function updateSlide() {
+        const p = photos[idx];
+        mainImg.src = p.src + '?v=hd';
+        mainImg.alt = p.title;
+        const amb = document.getElementById('ambientGalleryImage');
+        if (amb) amb.src = p.src + '?v=hd';
+        counterEl.textContent = `${idx + 1} / ${photos.length} • ${p.title}`;
+        captionEl.textContent = p.caption;
+        renderThumbs();
+      }
+
+      function prev() { idx = (idx - 1 + photos.length) % photos.length; updateSlide(); }
+      function next() { idx = (idx + 1) % photos.length; updateSlide(); }
+
+      document.getElementById('demoPrevBtn').addEventListener('click', prev);
+      document.getElementById('demoNextBtn').addEventListener('click', next);
+      document.getElementById('demoPrevBtnBottom').addEventListener('click', prev);
+      document.getElementById('demoNextBtnBottom').addEventListener('click', next);
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowLeft') prev();
+        if (e.key === 'ArrowRight') next();
+      });
+      renderThumbs();
+
+      function setMap(lat, lng, addr, area, city, college, bus, rail) {
+        const delta = 0.004;
+        const bbox = `${(lng - delta).toFixed(5)},${(lat - delta).toFixed(5)},${(lng + delta).toFixed(5)},${(lat + delta).toFixed(5)}`;
+        document.getElementById('demoMapFrame').src = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lng}`;
+        document.getElementById('demoGoogleMapsLink').href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(lat + ',' + lng)}`;
+        document.getElementById('demoCoordText').textContent = `Coordinates: ${lat.toFixed(4)}° N, ${lng.toFixed(4)}° E`;
+        if (addr) {
+          document.getElementById('demoHeaderAddress').textContent = '📍 ' + addr;
+          document.getElementById('demoMapAddress').textContent = '📍 ' + addr;
+          document.getElementById('demoInfoAddress').textContent = addr;
+        }
+        if (area) document.getElementById('demoInfoArea').textContent = area;
+        if (city) document.getElementById('demoInfoCity').textContent = city;
+        if (college) document.getElementById('demoNearCollege').textContent = college;
+        if (bus) document.getElementById('demoNearBus').textContent = bus;
+        if (rail) document.getElementById('demoNearRail').textContent = rail;
+      }
+
+      document.getElementById('demoKgpLocBtn').addEventListener('click', () => {
+        setMap(22.3543, 87.3357, 'Near Kharagpur College, Inda, Kharagpur - 721305, West Bengal', 'Inda (Near Kharagpur College)', 'Kharagpur', 'Kharagpur College & IIT Kharagpur', 'Inda College More Bus Stop', 'Kharagpur Junction Railway Station');
+      });
+      document.getElementById('demoVuLocBtn').addEventListener('click', () => {
+        setMap(22.4310, 87.2980, 'Near Vidyasagar University / Midnapore College, Midnapore - 721102, West Bengal', 'Tantigeria / Raja Bazar', 'Midnapore', 'Vidyasagar University & Midnapore College', 'Vidyasagar University Gate Bus Stop', 'Midnapore Railway Station');
+      });
+      document.getElementById('demoUseLiveGpsBtn').addEventListener('click', () => {
+        if (!navigator.geolocation) return MHUI.showToast('Geolocation not supported', 'error');
+        navigator.geolocation.getCurrentPosition(async (pos) => {
+          const lat = Number(pos.coords.latitude.toFixed(5));
+          const lng = Number(pos.coords.longitude.toFixed(5));
+          setMap(lat, lng);
+          MHUI.showToast(`Map updated to your current GPS location (${lat}, ${lng})`, 'success');
+          try {
+            const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`);
+            if (r.ok) {
+              const data = await r.json();
+              if (data && data.display_name) {
+                const shortAddr = data.display_name.split(',').slice(0, 4).join(',').trim();
+                setMap(lat, lng, shortAddr);
+              }
+            }
+          } catch (_) {}
+        }, () => MHUI.showToast('Unable to access GPS location', 'error'));
+      });
+    })();
+  </script>
+</body>
+</html>
+

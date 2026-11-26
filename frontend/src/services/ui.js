@@ -84,7 +84,16 @@ export function renderNavAuth(containerId = 'navAuthArea') {
   });
 }
 
-export const MHUI = { $, escapeHtml, formatDate, showToast, requireRole, renderNavAuth, getDashboardPath };
+export function openLoginModal(
+  reason = 'Without login, only the Demo Mode showcase is available. Please login to access real mess listings, search, filters, and details.',
+  nextUrl = ''
+) {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('mh-open-login-modal', { detail: { reason, nextUrl } }));
+  }
+}
+
+export const MHUI = { $, escapeHtml, formatDate, showToast, requireRole, renderNavAuth, getDashboardPath, openLoginModal };
 
 if (typeof window !== 'undefined') {
   window.MHUI = MHUI;

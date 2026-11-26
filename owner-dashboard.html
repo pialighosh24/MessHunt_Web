@@ -24,9 +24,9 @@
   <main class="page-wrap">
     <div class="page-header">
       <div>
-        <div class="eyebrow">MESS OWNER PORTAL</div>
-        <h1>Owner Dashboard</h1>
-        <p>Manage your listings, booking requests and reviews.</p>
+        <div class="eyebrow" id="ownerPortalEyebrow">MESS OWNER PORTAL</div>
+        <h1 id="ownerDashboardTitle">Owner Dashboard</h1>
+        <p>Manage your own mess listings, booking requests and reviews.</p>
       </div>
       <button class="btn btn-primary" id="newListingBtn">+ New Listing</button>
     </div>
@@ -68,6 +68,7 @@
           <div><label>Room Sharing</label>
             <select id="mRoomSharing"><option>Not specified</option><option>Single</option><option>Double</option><option>Triple</option><option>Multiple sharing</option></select>
           </div>
+          <div><label>No. of Rooms</label><input id="mTotalRooms" type="number" min="1" placeholder="e.g. 12"></div>
           <div><label>Furnishing</label>
             <select id="mFurnishing"><option>Not specified</option><option>Furnished</option><option>Unfurnished</option></select>
           </div>
@@ -161,7 +162,7 @@
 
   <script src="js/locations.js"></script>
   <script src="js/api.js"></script>
-  <script src="js/common.js"></script>
+  <script src="js/common.js?v=8"></script>
   <script>
     (function(){
       let listings = [];
@@ -248,7 +249,7 @@
                 <h3 style="margin:0;">${MHUI.escapeHtml(m.name)}</h3>
                 <div>${badge(m.approvalStatus)} ${badge(m.availabilityStatus)}</div>
               </div>
-              <div class="muted">₹${Number(m.price||0)}/month • ${MHUI.escapeHtml(m.accommodationType || m.gender || 'Not specified')} • ${MHUI.escapeHtml([m.area,m.city].filter(Boolean).join(', ')||'N/A')} • ⭐ ${Number(m.averageRating||0).toFixed(1)} (${m.reviewCount||0} student review${Number(m.reviewCount||0)===1?'':'s'})</div>
+              <div class="muted">₹${Number(m.price||0)}/month${m.totalRooms ? ` • ${Number(m.totalRooms)} Rooms` : ''} • ${MHUI.escapeHtml(m.accommodationType || m.gender || 'Not specified')} • ${MHUI.escapeHtml([m.area,m.city].filter(Boolean).join(', ')||'N/A')} • ⭐ ${Number(m.averageRating||0).toFixed(1)} (${m.reviewCount||0} student review${Number(m.reviewCount||0)===1?'':'s'})</div>
               ${thumbsHtml}
               ${m.rejectionReason ? `<div class="alert error" style="margin-top:8px;">Reason: ${MHUI.escapeHtml(m.rejectionReason)}</div>`:''}
               <div class="form-actions">
@@ -357,6 +358,7 @@
         setVal('mSecurityDeposit', m.securityDeposit ?? '');
         setVal('mCity', m.city||''); setVal('mArea', m.area||''); setVal('mAddress', m.address||''); setVal('mDesc', m.description||'');
         setVal('mAvailability', m.availabilityStatus||'available');
+        setVal('mTotalRooms', m.totalRooms ?? '');
         setSelect('mRoomSharing', m.roomSharing); setSelect('mFurnishing', m.furnishing); setSelect('mBathroomType', m.bathroomType);
         setSelect('mSelfCooking', m.selfCooking); setSelect('mKitchenAccess', m.kitchenAccess); setSelect('mCookingGas', m.cookingGas); setSelect('mInductionCooking', m.inductionCooking);
         setSelect('mFoodIncluded', m.foodIncluded); setSelect('mFoodPreference', m.foodPreference || m.foodType); setSelect('mBreakfast', m.breakfast); setSelect('mLunch', m.lunch); setSelect('mDinner', m.dinner);
@@ -423,6 +425,7 @@
                 <button type="button" class="btn btn-light" ${isPending ? 'disabled style="opacity:0.65;cursor:default;"' : ''} data-booking-status="${b._id}" data-status="pending">${isPending ? '• Pending' : 'Mark Pending'}</button>
                 <button type="button" class="btn btn-light" data-save-note="${b._id}" data-current-status="${b.status}">Save Note</button>
                 ${messId ? `<a class="btn btn-light" href="details.html?id=${encodeURIComponent(messId)}">View Mess</a>` : ''}
+                <button type="button" class="btn btn-danger" data-delete-booking="${b._id}">Delete</button>
               </div>
             </div>`;
           }).join('');
@@ -450,6 +453,18 @@
           });
           el.querySelectorAll('[data-save-note]').forEach(btn => {
             btn.addEventListener('click', () => updateBooking(btn.getAttribute('data-save-note'), btn.getAttribute('data-current-status') || 'pending', btn));
+          });
+          el.querySelectorAll('[data-delete-booking]').forEach(btn => {
+            btn.addEventListener('click', async () => {
+              if (!confirm('Delete this booking request permanently?')) return;
+              try {
+                await MHApi.request(`/api/bookings/${encodeURIComponent(btn.getAttribute('data-delete-booking'))}`, { method: 'DELETE' });
+                MHUI.showToast('Booking request deleted', 'success');
+                await Promise.all([loadStats(), loadOwnerBookings()]);
+              } catch (e) {
+                MHUI.showToast(e.message || 'Failed to delete booking request', 'error');
+              }
+            });
           });
         }catch(e){ el.innerHTML=`<div class="error-state">${MHUI.escapeHtml(e.message||'Failed to load bookings')}</div>`; }
       }
@@ -610,6 +625,7 @@
             availabilityStatus: val('mAvailability'),
             roomSharing: val('mRoomSharing'),
             roomType: val('mRoomSharing') === 'Single' ? 'Single' : 'Shared',
+            totalRooms: val('mTotalRooms') !== '' ? Number(val('mTotalRooms')) : null,
             furnishing: val('mFurnishing'),
             bathroomType: val('mBathroomType'),
             selfCooking: val('mSelfCooking'),
@@ -648,7 +664,16 @@
           }catch(err){ alertBox(err.message||'Failed to save listing'); }
         });
 
-        try{ await Promise.all([loadStats(), loadListings(), loadOwnerBookings(), loadOwnerReviews()]); }
+        try{
+          const u = MHApi.getUser();
+          if (u && u.name) {
+            const titleEl = document.getElementById('ownerDashboardTitle');
+            const eyeEl = document.getElementById('ownerPortalEyebrow');
+            if (titleEl) titleEl.textContent = `${u.name}'s Owner Dashboard`;
+            if (eyeEl && u.email) eyeEl.textContent = `MESS OWNER PORTAL • ${u.email.toUpperCase()}`;
+          }
+          await Promise.all([loadStats(), loadListings(), loadOwnerBookings(), loadOwnerReviews()]);
+        }
         catch(e){ alertBox(e.message||'Failed to load dashboard.'); }
       });
     })();

@@ -29,9 +29,11 @@ const createBooking = asyncHandler(async (req, res) => {
 
 const getMyBookings = asyncHandler(async (req, res) => {
   let query;
-  if (req.user.role === 'owner' || req.user.role === 'admin') {
-    const allMesses = await Mess.find({}).select('_id');
-    query = { mess: { $in: allMesses.map(m => m._id) } };
+  if (req.user.role === 'admin') {
+    query = {};
+  } else if (req.user.role === 'owner') {
+    const myMesses = await Mess.find({ owner: req.user._id }).select('_id');
+    query = { mess: { $in: myMesses.map(m => m._id) } };
   } else {
     query = { student: req.user._id };
   }
@@ -74,4 +76,19 @@ const updateBookingStatus = asyncHandler(async (req, res) => {
   res.json({ success: true, message: 'Booking status updated.', data: populated });
 });
 
-module.exports = { createBooking, getMyBookings, updateBookingStatus };
+const deleteBooking = asyncHandler(async (req, res) => {
+  const booking = await Booking.findById(req.params.id);
+  if (!booking) return res.status(404).json({ success: false, message: 'Booking not found.' });
+
+  const isStudent = String(booking.student) === String(req.user._id);
+  const isOwnerRole = req.user.role === 'owner';
+  const isAdmin = req.user.role === 'admin';
+  if (!isStudent && !isOwnerRole && !isAdmin) {
+    return res.status(403).json({ success: false, message: 'Not authorized to delete this booking request.' });
+  }
+
+  await booking.deleteOne();
+  res.json({ success: true, message: 'Booking request deleted.' });
+});
+
+module.exports = { createBooking, getMyBookings, updateBookingStatus, deleteBooking };

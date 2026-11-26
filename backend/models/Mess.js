@@ -58,6 +58,11 @@ const messSchema = new mongoose.Schema({
     trim: true,
     default: 'Not specified', // Single, Double, Triple, Multiple sharing, Not specified
   },
+  totalRooms: {
+    type: Number,
+    default: null,
+    min: 0,
+  },
   furnishing: {
     type: String,
     trim: true,

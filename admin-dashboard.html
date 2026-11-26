@@ -79,7 +79,7 @@
   </main>
 
   <script src="js/api.js"></script>
-  <script src="js/common.js"></script>
+  <script src="js/common.js?v=8"></script>
   <script>
     (function(){
       function alertBox(msg,type='error'){ document.getElementById('adminAlert').innerHTML = msg ? `<div class="alert ${type}">${MHUI.escapeHtml(msg)}</div>` : ''; }
@@ -141,24 +141,32 @@
         el.innerHTML = items.map(m => `
           <div class="list-item">
             <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;"><h3 style="margin:0;">${MHUI.escapeHtml(m.name)}</h3><div>${badge(m.approvalStatus)} ${badge(m.availabilityStatus)}</div></div>
-            <div class="muted">Owner: ${MHUI.escapeHtml(m.owner?.name||'N/A')} (${MHUI.escapeHtml(m.owner?.email||'')}) • ₹${Number(m.price||0)} • ${MHUI.escapeHtml([m.area,m.city].filter(Boolean).join(', '))}</div>
-            ${m.rejectionReason ? `<div class="small-note" style="margin-top:6px;"><strong>Reason:</strong> ${MHUI.escapeHtml(m.rejectionReason)}</div>`:''}
+            <div class="muted">Owner: ${MHUI.escapeHtml(m.owner?.name||'N/A')} (${MHUI.escapeHtml(m.owner?.email||'')}) • ₹${Number(m.price||0)}${m.totalRooms ? ` • ${Number(m.totalRooms)} Rooms` : ''} • ${MHUI.escapeHtml([m.area,m.city].filter(Boolean).join(', '))}</div>
+            <div style="margin-top:8px;"><input type="text" data-listing-note="${m._id}" value="${MHUI.escapeHtml(m.rejectionReason||'')}" placeholder="Optional moderation note / reason..." style="width:100%;padding:7px 10px;border:1px solid #d9e1ec;border-radius:8px;font-size:0.88rem;"></div>
             <div class="form-actions">
               <a class="btn btn-light" href="details.html?id=${encodeURIComponent(m._id)}">View</a>
               <button class="btn btn-primary" data-approve="${m._id}">Approve</button>
+              <button class="btn btn-light" data-pending="${m._id}">Mark Pending</button>
               <button class="btn btn-warning" data-reject="${m._id}">Reject</button>
               <button class="btn btn-danger" data-suspend="${m._id}">Suspend</button>
+              <button class="btn btn-danger" data-delete-mess="${m._id}">Delete</button>
             </div>
           </div>`).join('');
         async function setApproval(id, status){
-          let reason = '';
-          if(status==='rejected' || status==='suspended') reason = prompt('Reason (optional but recommended):','') || '';
+          const noteInput = el.querySelector(`input[data-listing-note="${id}"]`);
+          const reason = noteInput ? noteInput.value.trim() : '';
           try{ await MHApi.request(`/api/admin/messes/${encodeURIComponent(id)}/approval`, { method:'PATCH', body: JSON.stringify({ approvalStatus: status, rejectionReason: reason }) }); MHUI.showToast('Listing updated','success'); await Promise.all([loadStats(), loadListings()]); }
           catch(e){ MHUI.showToast(e.message||'Failed','error'); }
         }
         el.querySelectorAll('[data-approve]').forEach(b=>b.addEventListener('click',()=>setApproval(b.getAttribute('data-approve'),'approved')));
+        el.querySelectorAll('[data-pending]').forEach(b=>b.addEventListener('click',()=>setApproval(b.getAttribute('data-pending'),'pending')));
         el.querySelectorAll('[data-reject]').forEach(b=>b.addEventListener('click',()=>setApproval(b.getAttribute('data-reject'),'rejected')));
         el.querySelectorAll('[data-suspend]').forEach(b=>b.addEventListener('click',()=>setApproval(b.getAttribute('data-suspend'),'suspended')));
+        el.querySelectorAll('[data-delete-mess]').forEach(b=>b.addEventListener('click', async ()=>{
+          if(!confirm('Delete this mess listing permanently?')) return;
+          try{ await MHApi.request(`/api/messes/${encodeURIComponent(b.getAttribute('data-delete-mess'))}`, { method:'DELETE' }); MHUI.showToast('Listing deleted','success'); await Promise.all([loadStats(), loadListings(), loadReviews()]); }
+          catch(e){ MHUI.showToast(e.message||'Failed','error'); }
+        }));
       }
 
       async function loadReports(){
@@ -226,10 +234,15 @@
 
       document.addEventListener('DOMContentLoaded', async ()=>{
         const user = MHUI.requireRole(['admin']); if(!user) return;
-        try{ await loadStats(); } catch(e){ alertBox(e.message||'Failed to load admin dashboard.'); }
+        try{ await Promise.all([loadStats(), loadUsers(), loadListings(), loadReports(), loadReviews()]); } catch(e){ alertBox(e.message||'Failed to load admin dashboard.'); }
         document.getElementById('loadUsersBtn').addEventListener('click', ()=>loadUsers().catch(e=>MHUI.showToast(e.message,'error')));
+        document.getElementById('userRoleFilter').addEventListener('change', ()=>loadUsers().catch(e=>MHUI.showToast(e.message,'error')));
+        document.getElementById('userSearch').addEventListener('keydown', (e)=>{ if(e.key==='Enter') loadUsers().catch(err=>MHUI.showToast(err.message,'error')); });
         document.getElementById('loadListingsBtn').addEventListener('click', ()=>loadListings().catch(e=>MHUI.showToast(e.message,'error')));
+        document.getElementById('listingStatusFilter').addEventListener('change', ()=>loadListings().catch(e=>MHUI.showToast(e.message,'error')));
+        document.getElementById('listingSearch').addEventListener('keydown', (e)=>{ if(e.key==='Enter') loadListings().catch(err=>MHUI.showToast(err.message,'error')); });
         document.getElementById('loadReportsBtn').addEventListener('click', ()=>loadReports().catch(e=>MHUI.showToast(e.message,'error')));
+        document.getElementById('reportStatusFilter').addEventListener('change', ()=>loadReports().catch(e=>MHUI.showToast(e.message,'error')));
         document.getElementById('loadReviewsBtn').addEventListener('click', ()=>loadReviews().catch(e=>MHUI.showToast(e.message,'error')));
         document.getElementById('refreshAll').addEventListener('click', async()=>{
           try{ await Promise.all([loadStats(), loadUsers(), loadListings(), loadReports(), loadReviews()]); MHUI.showToast('Refreshed','success'); }

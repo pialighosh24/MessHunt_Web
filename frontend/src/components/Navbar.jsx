@@ -60,10 +60,11 @@ export default function Navbar({
         {navLinks.map((l) => <a key={l.href + l.label} href={l.href}>{l.label}</a>)}
       </nav>
       <div className="nav-actions" id="navAuthArea">
+        <a className="btn btn-demo-nav" id="exploreDemoNavBtn" href="/demo.html">✨ Explore Demo</a>
         {!user ? (
           <>
-            <a className="btn btn-light" href="login.html">Login</a>
-            <a className="btn btn-primary" href="register.html">Register</a>
+            <a className="btn btn-light" href="/login.html">Login</a>
+            <a className="btn btn-primary" href="/register.html">Register</a>
           </>
         ) : (
           <>
@@ -73,7 +74,7 @@ export default function Navbar({
             >
               {`${user.name || user.email} (${user.role})`}
             </span>
-            <a className="btn btn-light" href={getDashboardPath(user.role)}>Dashboard</a>
+            <a className="btn btn-light" href={`/${getDashboardPath(user.role)}`}>Dashboard</a>
             <button className="btn btn-primary" id="mhLogoutBtn" type="button" onClick={onLogout}>Logout</button>
           </>
         )}

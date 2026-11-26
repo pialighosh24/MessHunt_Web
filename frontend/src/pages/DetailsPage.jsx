@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { MHApi } from '../services/api'
-import { showToast, formatDate } from '../services/ui'
+import { showToast, formatDate, openLoginModal } from '../services/ui'
 
 function useQuery() {
   const { search } = useLocation()
@@ -55,8 +55,20 @@ export default function DetailsPage() {
   const [bookingSuccess, setBookingSuccess] = useState(false)
   const [myLocationText, setMyLocationText] = useState('')
 
-  const currentUser = (() => { try { return MHApi.getUser() } catch { return null } })()
+  const [currentUser, setCurrentUser] = useState(() => { try { return MHApi.getUser() } catch { return null } })
   const isStudent = currentUser?.role === 'student'
+
+  useEffect(() => {
+    const syncAuth = () => {
+      try { setCurrentUser(MHApi.getUser()) } catch { setCurrentUser(null) }
+    }
+    window.addEventListener('mh-auth-change', syncAuth)
+    window.addEventListener('storage', syncAuth)
+    return () => {
+      window.removeEventListener('mh-auth-change', syncAuth)
+      window.removeEventListener('storage', syncAuth)
+    }
+  }, [])
 
   const loadMess = async (id = messId) => {
     if (!id) {
@@ -95,6 +107,11 @@ export default function DetailsPage() {
   }
 
   useEffect(() => {
+    if (!currentUser) {
+      setLoading(false)
+      openLoginModal('Please login to view real mess details, photos, owner contact numbers, and booking requests. Without login, only Demo Mode is available.')
+      return
+    }
     let mounted = true
     ;(async () => {
       setLoading(true)
@@ -103,7 +120,7 @@ export default function DetailsPage() {
     })()
     return () => { mounted = false }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [messId])
+  }, [messId, currentUser?._id, currentUser?.id, currentUser?.role])
 
   useEffect(() => {
     if (mess?.name) document.title = `${mess.name} | MessHunt`
@@ -199,6 +216,30 @@ export default function DetailsPage() {
     }
   }
 
+  if (!currentUser) {
+    return (
+      <main className="details-layout">
+        <section className="panel" id="messHeaderPanel" style={{ textAlign: 'center', padding: '36px 20px' }}>
+          <span className="demo-pill-badge" style={{ margin: '0 auto 12px' }}>🔒 LOGIN REQUIRED</span>
+          <h1 style={{ fontSize: '1.8rem', marginBottom: '8px' }}>Login Required to View Real Mess Details</h1>
+          <p style={{ maxWidth: '580px', margin: '0 auto 18px' }}>
+            Without login, visitors can only view the Demo Mode showcase. Please login using the popup box to view real mess details, photos, owner contacts, map location, and booking options.
+          </p>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={() => openLoginModal('Please login to unlock real mess details, photos, owner contacts, and booking requests.')}
+            >
+              🔑 Open Login Pop-Up Box
+            </button>
+            <a className="btn btn-demo-nav" href="/demo.html">✨ Explore Demo Mode (No Login)</a>
+          </div>
+        </section>
+      </main>
+    )
+  }
+
   if (loading) {
     return (
       <main className="details-layout">
@@ -259,7 +300,7 @@ export default function DetailsPage() {
             <span className={`badge ${mess.availabilityStatus === 'available' ? 'success' : 'gray'}`}>{mess.availabilityStatus === 'available' ? 'Available' : 'Unavailable'}</span>
             <span className="badge warn">⭐ {Number(avg || 0).toFixed(1)} ({reviews.length})</span>
             {isStudent && <button className="btn btn-light" id="favToggleBtn" type="button" onClick={toggleFavourite}>❤ Favourite</button>}
-            {isStudent && <button className="btn btn-light" id="reportListingBtn" type="button" onClick={() => reportTarget('mess', mess._id)}>Report Listing</button>}
+            {currentUser && <button className="btn btn-light" id="reportListingBtn" type="button" onClick={() => reportTarget('mess', mess._id)}>Report Listing</button>}
           </div>
         </div>
         <p>{mess.description || 'No description provided.'}</p>
@@ -300,6 +341,7 @@ export default function DetailsPage() {
             <InfoRow k="Town/City" v={mess.city} />
             <InfoRow k="Area/Locality" v={mess.area} />
             <InfoRow k="Accommodation Type" v={accType(mess)} />
+            <InfoRow k="No. of Rooms" v={(mess.totalRooms !== null && mess.totalRooms !== undefined && mess.totalRooms !== '') ? `${mess.totalRooms} Rooms` : 'Not specified'} />
             <InfoRow k="Monthly Rent" v={money(mess.price)} />
             <InfoRow k="Security Deposit" v={money(mess.securityDeposit)} />
             <InfoRow k="Current Availability" v={mess.availabilityStatus === 'available' ? 'Available' : 'Unavailable'} />
@@ -311,6 +353,7 @@ export default function DetailsPage() {
           <h2>Room Information</h2>
           <div className="info-table">
             <InfoRow k="Room Sharing" v={mess.roomSharing || mess.roomType} />
+            <InfoRow k="No. of Rooms" v={(mess.totalRooms !== null && mess.totalRooms !== undefined && mess.totalRooms !== '') ? `${mess.totalRooms} Rooms` : 'Not specified'} />
             <InfoRow k="Furnishing" v={mess.furnishing} />
             <InfoRow k="Bathroom" v={mess.bathroomType} />
           </div>

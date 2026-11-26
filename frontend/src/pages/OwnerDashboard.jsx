@@ -13,7 +13,7 @@ function arrToCsv(v) { return Array.isArray(v) ? v.join(', ') : '' }
 
 const emptyForm = {
   listingId: '', name: '', accommodationType: 'Boys', price: '', securityDeposit: '', city: '', area: '', address: '', description: '',
-  availabilityStatus: 'available', roomSharing: 'Not specified', furnishing: 'Not specified', bathroomType: 'Not specified',
+  availabilityStatus: 'available', roomSharing: 'Not specified', totalRooms: '', furnishing: 'Not specified', bathroomType: 'Not specified',
   selfCooking: 'Not specified', kitchenAccess: 'Not specified', cookingGas: 'Not specified', inductionCooking: 'Not specified',
   foodIncluded: 'Not specified', foodPreference: 'Not specified', breakfast: 'Not specified', lunch: 'Not specified', dinner: 'Not specified',
   waterSupply: 'Not specified', electricityCharges: 'Not specified', wifi: 'Not specified', laundry: 'Not specified', parking: 'Not specified', studyTable: 'Not specified',
@@ -27,7 +27,7 @@ function listingToForm(m) {
   return {
     listingId: m._id || '', name: m.name || '', accommodationType: m.accommodationType || (m.gender === 'Co-ed' ? 'Unisex' : m.gender) || 'Boys',
     price: m.price ?? '', securityDeposit: m.securityDeposit ?? '', city: m.city || '', area: m.area || '', address: m.address || '', description: m.description || '',
-    availabilityStatus: m.availabilityStatus || 'available', roomSharing: m.roomSharing || m.roomType || 'Not specified',
+    availabilityStatus: m.availabilityStatus || 'available', roomSharing: m.roomSharing || m.roomType || 'Not specified', totalRooms: m.totalRooms ?? '',
     furnishing: m.furnishing || 'Not specified', bathroomType: m.bathroomType || 'Not specified',
     selfCooking: m.selfCooking || 'Not specified', kitchenAccess: m.kitchenAccess || 'Not specified', cookingGas: m.cookingGas || 'Not specified', inductionCooking: m.inductionCooking || 'Not specified',
     foodIncluded: m.foodIncluded || 'Not specified', foodPreference: m.foodPreference || m.foodType || 'Not specified',
@@ -50,6 +50,7 @@ function formToPayload(f) {
     securityDeposit: f.securityDeposit !== '' ? Number(f.securityDeposit) : null,
     city: f.city.trim(), area: f.area.trim(), address: f.address.trim(), description: f.description.trim(),
     availabilityStatus: f.availabilityStatus, roomSharing: f.roomSharing, roomType: f.roomSharing === 'Single' ? 'Single' : 'Shared',
+    totalRooms: (f.totalRooms !== '' && f.totalRooms !== null && f.totalRooms !== undefined) ? Number(f.totalRooms) : null,
     furnishing: f.furnishing, bathroomType: f.bathroomType, selfCooking: f.selfCooking, kitchenAccess: f.kitchenAccess,
     cookingGas: f.cookingGas, inductionCooking: f.inductionCooking, foodIncluded: f.foodIncluded, foodPreference: f.foodPreference,
     breakfast: f.breakfast, lunch: f.lunch, dinner: f.dinner, waterSupply: f.waterSupply, electricityCharges: f.electricityCharges,
@@ -202,6 +203,12 @@ export default function OwnerDashboard() {
     catch (e) { showToast(e.message || 'Failed to delete review', 'error') }
   }
 
+  const deleteBooking = async (id) => {
+    if (!window.confirm('Delete this booking request permanently?')) return
+    try { await MHApi.request(`/api/bookings/${encodeURIComponent(id)}`, { method: 'DELETE' }); showToast('Booking request deleted', 'success'); await Promise.all([loadStats(), loadOwnerBookings()]) }
+    catch (e) { showToast(e.message || 'Failed to delete booking request', 'error') }
+  }
+
   const handleRefresh = async (fn, msg) => { try { await fn(); if (msg) showToast(msg, 'success') } catch (e) { showToast(e.message || 'Refresh failed', 'error') } }
 
   const autoDetectCoords = () => {
@@ -219,13 +226,18 @@ export default function OwnerDashboard() {
     }, () => showToast('Unable to access GPS location', 'error'))
   }
 
+  const currentOwner = (() => { try { return MHApi.getUser() } catch { return null } })()
   const formPhotoUrls = csvToArr(form.images)
   const s = stats || {}; const l = s.listings || {}; const b = s.bookings || {}
 
   return (
     <main className="page-wrap">
       <div className="page-header">
-        <div><div className="eyebrow">MESS OWNER PORTAL</div><h1>Owner Dashboard</h1><p>Manage your listings, booking requests and reviews.</p></div>
+        <div>
+          <div className="eyebrow">MESS OWNER PORTAL {currentOwner?.email ? `• ${currentOwner.email.toUpperCase()}` : ''}</div>
+          <h1>{currentOwner?.name ? `${currentOwner.name}'s Owner Dashboard` : 'Owner Dashboard'}</h1>
+          <p>Manage your own mess listings, booking requests and reviews.</p>
+        </div>
         <button className="btn btn-primary" id="newListingBtn" onClick={openCreate}>+ New Listing</button>
       </div>
       <div id="ownerAlert">{alert.msg ? <div className={`alert ${alert.type}`}>{alert.msg}</div> : null}</div>
@@ -257,6 +269,7 @@ export default function OwnerDashboard() {
           <h3 style={{ marginTop: '16px' }}>Room Information</h3>
           <div className="form-grid">
             <div><label>Room Sharing</label><select id="mRoomSharing" value={form.roomSharing} onChange={e => setF('roomSharing', e.target.value)}><option>Not specified</option><option>Single</option><option>Double</option><option>Triple</option><option>Multiple sharing</option></select></div>
+            <div><label>No. of Rooms</label><input id="mTotalRooms" type="number" min="1" placeholder="e.g. 12" value={form.totalRooms} onChange={e => setF('totalRooms', e.target.value)} /></div>
             <div><label>Furnishing</label><select id="mFurnishing" value={form.furnishing} onChange={e => setF('furnishing', e.target.value)}><option>Not specified</option><option>Furnished</option><option>Unfurnished</option></select></div>
             <div><label>Bathroom Type</label><select id="mBathroomType" value={form.bathroomType} onChange={e => setF('bathroomType', e.target.value)}><option>Not specified</option><option>Attached bathroom</option><option>Common bathroom</option></select></div>
           </div>
@@ -336,7 +349,7 @@ export default function OwnerDashboard() {
       </section>
 
       <section className="panel" style={{ marginTop: '16px' }}>
-        <div className="panel-header"><h2>My Listings</h2><button className="btn btn-light" id="refreshListings" onClick={() => handleRefresh(async () => { await Promise.all([loadStats(), loadListings()]) }, 'My Listings refreshed')}>Refresh</button></div>
+        <div className="panel-header"><h2>My Listings ({listings.length})</h2><button className="btn btn-light" id="refreshListings" onClick={() => handleRefresh(async () => { await Promise.all([loadStats(), loadListings()]) }, 'My Listings refreshed')}>Refresh</button></div>
         <div id="myListings" className="list">
           {loadingListings ? <div className="loading-state">Loading listings...</div>
             : listings.length === 0 ? <div className="empty-state">No listings yet. Click "New Listing" to create one.</div>
@@ -346,7 +359,7 @@ export default function OwnerDashboard() {
                   <h3 style={{ margin: 0 }}>{m.name}</h3>
                   <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}><Badge status={m.approvalStatus} /><Badge status={m.availabilityStatus} /></div>
                 </div>
-                <div className="muted" style={{ marginTop: '4px' }}>₹{Number(m.price || 0)} • {[m.area, m.city].filter(Boolean).join(', ') || 'N/A'} • ⭐ {Number(m.averageRating || 0).toFixed(1)} ({m.reviewCount || 0})</div>
+                <div className="muted" style={{ marginTop: '4px' }}>₹{Number(m.price || 0)}{m.totalRooms ? ` • ${m.totalRooms} Rooms` : ''} • {[m.area, m.city].filter(Boolean).join(', ') || 'N/A'} • ⭐ {Number(m.averageRating || 0).toFixed(1)} ({m.reviewCount || 0})</div>
                 {m.rejectionReason ? <div className="small-note" style={{ marginTop: '6px' }}><strong>Admin note:</strong> {m.rejectionReason}</div> : null}
                 <div style={{ marginTop: '8px', display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
                   {(Array.isArray(m.images) && m.images.length) ? (
@@ -399,6 +412,7 @@ export default function OwnerDashboard() {
                     <button type="button" className="btn btn-light" disabled={isPending} style={isPending ? { opacity: 0.65, cursor: 'default' } : undefined} onClick={() => updateBooking(bk._id, 'pending')}>{isPending ? '• Pending' : 'Mark Pending'}</button>
                     <button type="button" className="btn btn-light" onClick={() => updateBooking(bk._id, bk.status || 'pending')}>Save Note</button>
                     {messId ? <a className="btn btn-light" href={`/details.html?id=${encodeURIComponent(messId)}`}>View Mess</a> : null}
+                    <button type="button" className="btn btn-danger" onClick={() => deleteBooking(bk._id)}>Delete</button>
                   </div>
                 </div>
               )

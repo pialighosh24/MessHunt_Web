@@ -13,6 +13,7 @@ export default function LoginPage() {
   const location = useLocation()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [armed, setArmed] = useState(false)
   const [alert, setAlert] = useState({ type: '', message: '' })
 
   useEffect(() => {
@@ -52,12 +53,12 @@ export default function LoginPage() {
         <div id="loginAlert">
           {alert.message && <div className={`alert ${alert.type}`}>{alert.message}</div>}
         </div>
-        <form id="loginForm" onSubmit={onSubmit}>
+        <form id="loginForm" onSubmit={onSubmit} autoComplete="off">
           <label htmlFor="email">Email</label>
-          <input type="email" id="email" name="email" required placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+          <input type="email" id="email" name="mh_login_email_field" required autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck={false} readOnly={!armed} onFocus={() => setArmed(true)} placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
 
           <label htmlFor="password">Password</label>
-          <input type="password" id="password" name="password" required placeholder="Enter your password" value={password} onChange={(e) => setPassword(e.target.value)} />
+          <input type="password" id="password" name="mh_login_pass_field" required autoComplete="new-password" readOnly={!armed} onFocus={() => setArmed(true)} placeholder="Enter your password" value={password} onChange={(e) => setPassword(e.target.value)} />
 
           <div className="form-actions">
             <button type="submit" className="btn btn-primary btn-block">Login</button>

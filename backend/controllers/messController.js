@@ -77,7 +77,7 @@ const inferLocationFromFields = (payload) => {
 const buildMessPayload = (body, ownerId, isCreate = false) => {
   const payload = {};
   const fields = [
-    'name', 'description', 'address', 'area', 'city', 'price', 'securityDeposit', 'roomType', 'roomSharing', 'furnishing', 'bathroomType',
+    'name', 'description', 'address', 'area', 'city', 'price', 'securityDeposit', 'roomType', 'roomSharing', 'totalRooms', 'furnishing', 'bathroomType',
     'gender', 'accommodationType', 'foodType', 'foodAvailable', 'foodIncluded', 'foodPreference', 'breakfast', 'lunch', 'dinner',
     'selfCooking', 'kitchenAccess', 'cookingGas', 'inductionCooking', 'electricityCharges', 'waterSupply',
     'facilities', 'rules', 'ownerName', 'contactPhone', 'contactEmail', 'whatsapp', 'images', 'availabilityStatus'
@@ -115,6 +115,12 @@ const buildMessPayload = (body, ownerId, isCreate = false) => {
 
   // Types/conversions
   if (payload.price !== undefined && payload.price !== '') payload.price = Number(payload.price);
+  if (payload.totalRooms === '' || payload.totalRooms === undefined || payload.totalRooms === null) {
+    if (isCreate || Object.prototype.hasOwnProperty.call(body, 'totalRooms')) payload.totalRooms = null;
+  } else {
+    const nRooms = Number(payload.totalRooms);
+    payload.totalRooms = (Number.isNaN(nRooms) || nRooms < 0) ? null : Math.floor(nRooms);
+  }
   if (payload.securityDeposit === '' || payload.securityDeposit === undefined) {
     // keep null if explicitly blank in create? but don't overwrite unintentionally on partial update unless provided
     if (isCreate || Object.prototype.hasOwnProperty.call(body, 'securityDeposit')) payload.securityDeposit = null;
@@ -359,7 +365,8 @@ const createMess = asyncHandler(async (req, res) => {
 
 const getMyMesses = asyncHandler(async (req, res) => {
   const Review = require('../models/Review');
-  const items = await Mess.find({}).sort({ createdAt: -1 });
+  const ownerFilter = req.user.role === 'admin' ? {} : { owner: req.user._id };
+  const items = await Mess.find(ownerFilter).sort({ createdAt: -1 });
   // Ensure ratings & review counts strictly reflect real student reviews in DB
   const stats = await Review.aggregate([
     { $match: { isHidden: { $ne: true } } },
@@ -379,8 +386,8 @@ const getMyMesses = asyncHandler(async (req, res) => {
 const updateMyMess = asyncHandler(async (req, res) => {
   const mess = await Mess.findById(req.params.id);
   if (!mess) return res.status(404).json({ success: false, message: 'Mess listing not found.' });
-  if (req.user.role !== 'owner' && req.user.role !== 'admin') {
-    return res.status(403).json({ success: false, message: 'Only mess owners can edit listings.' });
+  if (req.user.role !== 'admin' && String(mess.owner) !== String(req.user._id)) {
+    return res.status(403).json({ success: false, message: 'You can only edit your own mess listings.' });
   }
   const payload = buildMessPayload(req.body || {}, req.user._id, false);
   delete payload.owner;
@@ -392,8 +399,8 @@ const updateMyMess = asyncHandler(async (req, res) => {
 const deleteMyMess = asyncHandler(async (req, res) => {
   const mess = await Mess.findById(req.params.id);
   if (!mess) return res.status(404).json({ success: false, message: 'Mess listing not found.' });
-  if (req.user.role !== 'owner' && req.user.role !== 'admin') {
-    return res.status(403).json({ success: false, message: 'Not authorized to delete this listing.' });
+  if (req.user.role !== 'admin' && String(mess.owner) !== String(req.user._id)) {
+    return res.status(403).json({ success: false, message: 'You can only delete your own mess listings.' });
   }
   const Booking = require('../models/Booking');
   const Review = require('../models/Review');

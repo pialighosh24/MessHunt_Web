@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { MHApi } from '../services/api'
 import { MHLocations } from '../data/locations'
-import { escapeHtml } from '../services/ui'
+import { escapeHtml, openLoginModal } from '../services/ui'
 
 function cardImage(mess) {
   const raw = (mess.images && mess.images[0]) ? String(mess.images[0]).trim() : ''
@@ -54,11 +54,13 @@ function MessCard({ mess, onLocate }) {
         <div className="mess-details">
           <div className="detail-item"><small>Monthly Rent</small><strong>₹{Number(mess.price || 0)}</strong></div>
           <div className="detail-item"><small>Accommodation</small><strong>{displayAccommodation(mess)}</strong></div>
+          <div className="detail-item"><small>Room Sharing</small><strong>{mess.roomSharing || mess.roomType || 'Not specified'}</strong></div>
+          <div className="detail-item"><small>No. of Rooms</small><strong>{mess.totalRooms ? `${mess.totalRooms} Rooms` : 'Not specified'}</strong></div>
           <div className="detail-item"><small>Food</small><strong>{displayFood(mess)}</strong></div>
           <div className="detail-item"><small>Availability</small><strong>{mess.availabilityStatus === 'available' ? 'Available' : 'Unavailable'}</strong></div>
         </div>
         <div className="card-actions" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-          <a className="btn btn-light" href={`details.html?id=${encodeURIComponent(mess._id)}`}>View Details</a>
+          <a className="btn btn-light" data-mh-details="1" href={`details.html?id=${encodeURIComponent(mess._id)}`}>View Details</a>
           {hasCoords && onLocate && (
             <button className="btn btn-light" type="button" onClick={() => onLocate(mess._id)}>📍 Locate on Map</button>
           )}
@@ -177,7 +179,7 @@ export default function HomePage() {
       const lat = Number(m.location.lat)
       const lng = Number(m.location.lng)
       bounds.push([lat, lng])
-      const popup = `<div style="min-width:180px"><strong>${escapeHtml(m.name)}</strong><br><span>${escapeHtml([m.area, m.city].filter(Boolean).join(', '))}</span><br><span>₹${Number(m.price || 0)}/month • ${escapeHtml(displayAccommodation(m))}</span><br><a href="details.html?id=${encodeURIComponent(m._id)}">View details</a></div>`
+      const popup = `<div style="min-width:180px"><strong>${escapeHtml(m.name)}</strong><br><span>${escapeHtml([m.area, m.city].filter(Boolean).join(', '))}</span><br><span>₹${Number(m.price || 0)}/month • ${escapeHtml(displayAccommodation(m))}${m.totalRooms ? ` • ${Number(m.totalRooms)} Rooms` : ''}</span><br><a data-mh-details="1" href="details.html?id=${encodeURIComponent(m._id)}">View details</a></div>`
       const marker = window.L.marker([lat, lng]).addTo(layer).bindPopup(popup)
       markerByIdRef.current[String(m._id)] = { marker, lat, lng }
     })
@@ -233,6 +235,24 @@ export default function HomePage() {
   }, [])
 
   useEffect(() => {
+    const onDetailsClick = (e) => {
+      const a = e.target && e.target.closest ? e.target.closest('a[data-mh-details]') : null
+      if (!a) return
+      let u = null
+      try { u = MHApi.getUser() } catch { u = null }
+      if (u) return
+      e.preventDefault()
+      const href = a.getAttribute('href') || ''
+      openLoginModal(
+        'Please login first to view mess details, photos, owner contact numbers and booking. You can browse the listings and Demo Mode freely.',
+        href.startsWith('/') ? href : '/' + href
+      )
+    }
+    document.addEventListener('click', onDetailsClick)
+    return () => document.removeEventListener('click', onDetailsClick)
+  }, [])
+
+  useEffect(() => {
     return () => {
       if (mapRef.current) {
         try { mapRef.current.remove() } catch {}
@@ -242,9 +262,19 @@ export default function HomePage() {
     }
   }, [])
 
+  const scrollToMessCards = () => {
+    setTimeout(() => {
+      const gridEl = document.getElementById('messGrid')
+      if (gridEl) {
+        gridEl.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }
+    }, 80)
+  }
+
   const applyFilters = (scroll = true) => {
-    loadMesses(1)
-    if (scroll) document.getElementById('explore')?.scrollIntoView({ behavior: 'smooth' })
+    loadMesses(1).then(() => {
+      if (scroll) scrollToMessCards()
+    })
   }
 
   const clearAllFilters = () => {
@@ -288,8 +318,9 @@ export default function HomePage() {
       nearby: '',
       facilities: '',
       sort: 'newest',
+    }).then(() => {
+      scrollToMessCards()
     })
-    document.getElementById('explore')?.scrollIntoView({ behavior: 'smooth' })
   }
 
   const onHeroSearchChange = (v) => {
@@ -459,12 +490,12 @@ export default function HomePage() {
             <div className="no-results" id="noResults" style={{ display: 'block' }}>No mess listings found. Try changing your search or filters.</div>
           )}
 
-          <div className="pagination" id="pagination">
+              <div className=" pagination" id="pagination">
             {totalPages > 1 && (
               <>
-                <button className="btn btn-light" disabled={page <= 1} onClick={() => { const p = page - 1; if (p >= 1) { loadMesses(p); document.getElementById('explore')?.scrollIntoView({ behavior: 'smooth', block: 'start' }) } }}>Prev</button>
+                <button className="btn btn-light" disabled={page <= 1} onClick={() => { const p = page - 1; if (p >= 1) { loadMesses(p).then(() => scrollToMessCards()) } }}>Prev</button>
                 <span className="page-info">Page {page} of {totalPages}</span>
-                <button className="btn btn-light" disabled={page >= totalPages} onClick={() => { const p = page + 1; if (p <= totalPages) { loadMesses(p); document.getElementById('explore')?.scrollIntoView({ behavior: 'smooth', block: 'start' }) } }}>Next</button>
+                <button className="btn btn-light" disabled={page >= totalPages} onClick={() => { const p = page + 1; if (p <= totalPages) { loadMesses(p).then(() => scrollToMessCards()) } }}>Next</button>
               </>
             )}
           </div>

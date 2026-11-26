@@ -432,11 +432,90 @@ const updates = {
     'Uttaran Mess': { phone: '', ownerName: 'Uttaran Mess (Proprietor)', email: '' }
   };
 
+  const User = require(path.join(cwd, 'models/user'));
+  const Booking = require(path.join(cwd, 'models/Booking'));
   await mongoose.connect(process.env.MONGO_URI);
   // Clear fake demo owner phone number
   await mongoose.connection.collection('users').updateOne({ email: 'owner@messhunt.com' }, { $set: { phone: '' } });
-  await mongoose.connection.collection('users').updateOne({ email: 'maityankana@gmail.com' }, { $set: { name: 'Anu', phone: '' } });
+  await mongoose.connection.collection('users').updateOne({ email: 'maityankana@gmail.com' }, { $set: { name: 'Anu', phone: '', role: 'owner', isActive: true, ownerVerified: true } });
   await mongoose.connection.collection('users').updateOne({ email: 'maityankana913@gmail.com' }, { $set: { name: 'Ankana', phone: '' } });
+  await mongoose.connection.collection('users').updateOne({ email: 'pialighosh@gmail.com' }, { $set: { role: 'owner', isActive: true, ownerVerified: true } });
+
+  // Ensure the 4 owner accounts exist:
+  // 1. maityankana@gmail.com (Anu)
+  // 2. pialighosh@gmail.com (piali ghosh)
+  // 3. shrestha@gmail.com (password: 1234)
+  // 4. anima@gmail.com (password: 1234)
+  const ensureOwner = async (email, name, defaultPassword) => {
+    let u = await User.findOne({ email: email.toLowerCase() });
+    if (!u) {
+      u = new User({ name, email: email.toLowerCase(), password: defaultPassword, role: 'owner', isActive: true, ownerVerified: true });
+      await u.save();
+    } else if (defaultPassword) {
+      u.name = name;
+      u.role = 'owner';
+      u.isActive = true;
+      u.ownerVerified = true;
+      u.password = defaultPassword;
+      await u.save();
+    }
+    return u;
+  };
+
+  const owner1 = await ensureOwner('maityankana@gmail.com', 'Anu', null);
+  const owner2 = await ensureOwner('pialighosh@gmail.com', 'piali ghosh', null);
+  const owner3 = await ensureOwner('shrestha@gmail.com', 'Shrestha', '1234');
+  const owner4 = await ensureOwner('anima@gmail.com', 'Anima', '1234');
+
+  // Ensure Admin account Piali Ghosh (pialighosh2006@gmail.com / ghosh123) exists with role 'admin'
+  let pialiAdmin = await User.findOne({ email: 'pialighosh2006@gmail.com' });
+  if (!pialiAdmin) {
+    pialiAdmin = new User({
+      name: 'Piali Ghosh',
+      email: 'pialighosh2006@gmail.com',
+      password: 'ghosh123',
+      role: 'admin',
+      isActive: true
+    });
+    await pialiAdmin.save();
+  } else {
+    pialiAdmin.name = 'Piali Ghosh';
+    pialiAdmin.password = 'ghosh123';
+    pialiAdmin.role = 'admin';
+    pialiAdmin.isActive = true;
+    await pialiAdmin.save();
+  }
+
+  // Divide the 20 mess listings across the 4 owners (3, 5, 4, 8):
+  const ownerByMessName = {
+    // 1. Anu (maityankana@gmail.com) — 3 listings
+    'Debi Sarbajaya Mess': owner1._id,
+    'Puspak Mess': owner1._id,
+    'Uttaran Mess': owner1._id,
+
+    // 2. Piali (pialighosh@gmail.com) — 5 listings
+    'Sahachari Chhatri Nibas': owner2._id,
+    'Kanak Mess Cum Paying Guest': owner2._id,
+    'Johim Mess': owner2._id,
+    'Peace Avenue Girls Mess': owner2._id,
+    'Manjusri Chatrinivas': owner2._id,
+
+    // 3. Shrestha (shrestha@gmail.com, password: 1234) — 4 listings
+    'Silver Spring Boys Mess': owner3._id,
+    'Chakadola Ladies Mess': owner3._id,
+    'Bhadra Mess Bari': owner3._id,
+    'Aurobinda Mess': owner3._id,
+
+    // 4. Anima (anima@gmail.com, password: 1234) — 8 listings
+    'Shantiniketan Mess': owner4._id,
+    'Bharat PG': owner4._id,
+    'AFS Apartment': owner4._id,
+    'Tapas P.G.': owner4._id,
+    'Kharagpur P.G.': owner4._id,
+    'Premium Boys AC PG': owner4._id,
+    'Sujay Kr Sharma PG Hostel': owner4._id,
+    'TM - MESS': owner4._id
+  };
 
   const verifiedImages = {
     'Debi Sarbajaya Mess': ['/uploads/messes/Screenshot-2026-11-21-221908-1795279762134-1.png', '/uploads/messes/Screenshot-2026-11-21-222444-1795280104466-1.png'],
@@ -481,6 +560,9 @@ const updates = {
       if ((!mess.images || mess.images.length === 0) && verifiedImages[name]) {
         mess.images = verifiedImages[name];
       }
+      if (ownerByMessName[name]) {
+        mess.owner = ownerByMessName[name];
+      }
       const info = verifiedGoogleContacts[name] || { phone: '', ownerName: `${name} (Proprietor)`, email: '' };
       mess.ownerName = info.ownerName;
       mess.contactPhone = info.phone;
@@ -496,6 +578,7 @@ const updates = {
       mess.approvalStatus = 'approved';
       mess.availabilityStatus = 'available';
       await mess.save();
+      await Booking.updateMany({ mess: mess._id }, { $set: { owner: mess.owner } });
       count++;
     }
   }

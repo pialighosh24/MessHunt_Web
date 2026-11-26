@@ -16,22 +16,13 @@ const register = asyncHandler(async (req, res) => {
   if (!name || !email || !password) {
     return res.status(400).json({ success: false, message: 'Name, email and password are required.' });
   }
-  if (String(password).length < 6) {
-    return res.status(400).json({ success: false, message: 'Password must be at least 6 characters long.' });
+  if (String(password).length < 4) {
+    return res.status(400).json({ success: false, message: 'Password must be at least 4 characters long.' });
   }
 
   let normalizedRole = (role || 'student').toLowerCase();
   if (!['student', 'owner', 'admin'].includes(normalizedRole)) {
     return res.status(400).json({ success: false, message: 'Invalid role.' });
-  }
-  if (normalizedRole === 'admin') {
-    const setupKey = req.body.adminSetupKey || req.headers['x-admin-setup-key'];
-    const expected = process.env.ADMIN_SETUP_KEY;
-    if (!expected || !setupKey || String(setupKey) !== String(expected)) {
-      return res.status(403).json({ success: false, message: 'Admin registration is restricted.' });
-    }
-  } else if (!['student', 'owner'].includes(normalizedRole)) {
-    return res.status(400).json({ success: false, message: 'Public registration is allowed only for student or owner accounts.' });
   }
 
   const existing = await User.findOne({ email: String(email).trim().toLowerCase() });

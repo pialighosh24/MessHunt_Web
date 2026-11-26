@@ -30,6 +30,16 @@ const getDashboardStats = asyncHandler(async (req, res) => {
   res.json({
     success: true,
     data: {
+      totalStudents,
+      totalOwners,
+      totalAdmins,
+      totalListings,
+      pendingMesses: pendingListings,
+      approvedMesses: approvedListings,
+      rejectedMesses: rejectedListings,
+      suspendedMesses: suspendedListings,
+      openReports,
+      totalReports,
       users: { totalStudents, totalOwners, totalAdmins },
       listings: { total: totalListings, pending: pendingListings, approved: approvedListings, rejected: rejectedListings, suspended: suspendedListings },
       reviews: { total: totalReviews, hidden: hiddenReviews },
@@ -71,7 +81,16 @@ const getAllMesses = asyncHandler(async (req, res) => {
   if (status) query.approvalStatus = status;
   if (search) {
     const regex = new RegExp(String(search).trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
-    query.$or = [{ name: regex }, { area: regex }, { address: regex }, { city: regex }];
+    const matchingOwners = await User.find({ $or: [{ name: regex }, { email: regex }] }).select('_id');
+    const ownerIds = matchingOwners.map(u => u._id);
+    query.$or = [
+      { name: regex },
+      { area: regex },
+      { address: regex },
+      { city: regex },
+      { ownerName: regex },
+      ...(ownerIds.length ? [{ owner: { $in: ownerIds } }] : [])
+    ];
   }
   const messes = await Mess.find(query).populate('owner', 'name email phone role ownerVerified').sort({ createdAt: -1 });
   res.json({ success: true, data: messes });
@@ -95,18 +114,40 @@ const getReports = asyncHandler(async (req, res) => {
   if (status) query.status = status;
   if (targetType) query.targetType = targetType;
   const reports = await Report.find(query).populate('reporter', 'name email role').sort({ createdAt: -1 });
-  res.json({ success: true, data: reports });
+
+  // Enrich each report with human-readable target details (Mess name or Review details)
+  const enriched = await Promise.all(reports.map(async (r) => {
+    const obj = r.toObject();
+    try {
+      if (obj.targetType === 'mess') {
+        const m = await Mess.findById(obj.targetId).select('name area city approvalStatus');
+        if (m) {
+          obj.targetMess = m;
+          obj.targetSummary = `Mess: ${m.name} (${[m.area, m.city].filter(Boolean).join(', ')})`;
+        }
+      } else if (obj.targetType === 'review') {
+        const rev = await Review.findById(obj.targetId).populate('user', 'name email').populate('mess', 'name');
+        if (rev) {
+          obj.targetReview = rev;
+          obj.targetSummary = `Review on "${rev.mess?.name || 'Mess'}" by ${rev.user?.name || 'Student'}: "${rev.comment || ''}" (${rev.rating}★)`;
+        }
+      }
+    } catch (_) {}
+    return obj;
+  }));
+
+  res.json({ success: true, data: enriched });
 });
 
 const updateReport = asyncHandler(async (req, res) => {
   const report = await Report.findById(req.params.id);
   if (!report) return res.status(404).json({ success: false, message: 'Report not found.' });
-  const { status, adminNote, actionTaken, hideReview, deleteReview } = req.body || {};
+  const { status, adminNote, actionTaken, hideReview, deleteReview, suspendMess } = req.body || {};
   if (status) report.status = status;
   if (adminNote !== undefined) report.adminNote = String(adminNote).trim();
   if (actionTaken !== undefined) report.actionTaken = String(actionTaken).trim();
 
-  // Optional moderation actions for reported reviews
+  // Optional moderation actions for reported reviews or messes
   if (report.targetType === 'review' && (hideReview || deleteReview)) {
     const review = await Review.findById(report.targetId);
     if (review) {
@@ -122,10 +163,25 @@ const updateReport = asyncHandler(async (req, res) => {
         report.actionTaken = report.actionTaken || 'Reported review hidden by admin.';
       }
     }
+  } else if (report.targetType === 'mess' && suspendMess) {
+    const mess = await Mess.findById(report.targetId);
+    if (mess) {
+      mess.approvalStatus = 'suspended';
+      mess.rejectionReason = report.adminNote || 'Suspended due to user report.';
+      await mess.save();
+      report.actionTaken = report.actionTaken || 'Reported mess suspended by admin.';
+    }
   }
 
   await report.save();
   res.json({ success: true, message: 'Report updated.', data: report });
+});
+
+const deleteReport = asyncHandler(async (req, res) => {
+  const report = await Report.findById(req.params.id);
+  if (!report) return res.status(404).json({ success: false, message: 'Report not found.' });
+  await report.deleteOne();
+  res.json({ success: true, message: 'Report deleted.' });
 });
 
 const getAllReviews = asyncHandler(async (req, res) => {
@@ -145,6 +201,6 @@ const moderateReview = asyncHandler(async (req, res) => {
 module.exports = {
   getDashboardStats, getUsers, updateUserStatus,
   getAllMesses, updateMessApproval,
-  getReports, updateReport,
+  getReports, updateReport, deleteReport,
   getAllReviews, moderateReview
 };

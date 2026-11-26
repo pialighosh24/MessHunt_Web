@@ -45,11 +45,13 @@
           <div class="mess-details">
             <div class="detail-item"><small>Monthly Rent</small><strong>₹${Number(mess.price || 0)}</strong></div>
             <div class="detail-item"><small>Accommodation</small><strong>${MHUI.escapeHtml(displayAccommodation(mess))}</strong></div>
+            <div class="detail-item"><small>Room Sharing</small><strong>${MHUI.escapeHtml(mess.roomSharing || mess.roomType || 'Not specified')}</strong></div>
+            <div class="detail-item"><small>No. of Rooms</small><strong>${mess.totalRooms ? `${Number(mess.totalRooms)} Rooms` : 'Not specified'}</strong></div>
             <div class="detail-item"><small>Food</small><strong>${MHUI.escapeHtml(displayFood(mess))}</strong></div>
             <div class="detail-item"><small>Availability</small><strong>${mess.availabilityStatus === 'available' ? 'Available' : 'Unavailable'}</strong></div>
           </div>
           <div class="card-actions" style="display:flex;gap:8px;flex-wrap:wrap;">
-            <a class="btn btn-light" href="details.html?id=${encodeURIComponent(mess._id)}">View Details</a>
+            <a class="btn btn-light" data-mh-details="1" href="details.html?id=${encodeURIComponent(mess._id)}">View Details</a>
             ${(mess.location && mess.location.lat != null && mess.location.lng != null) ? `<button class="btn btn-light" type="button" data-locate-mess="${MHUI.escapeHtml(mess._id)}">📍 Locate on Map</button>` : ''}
           </div>
         </div>
@@ -150,7 +152,7 @@
     mappable.forEach(m => {
       const lat = Number(m.location.lat), lng = Number(m.location.lng);
       bounds.push([lat, lng]);
-      const popup = `<div style="min-width:190px"><strong>${MHUI.escapeHtml(m.name)}</strong><br><span>📍 ${MHUI.escapeHtml([m.address || m.area, m.city].filter(Boolean).join(', '))}</span><br><span>₹${Number(m.price||0)}/month • ${MHUI.escapeHtml(displayAccommodation(m))}</span><br><a href="details.html?id=${encodeURIComponent(m._id)}">View details & map</a></div>`;
+      const popup = `<div style="min-width:190px"><strong>${MHUI.escapeHtml(m.name)}</strong><br><span>📍 ${MHUI.escapeHtml([m.address || m.area, m.city].filter(Boolean).join(', '))}</span><br><span>₹${Number(m.price||0)}/month • ${MHUI.escapeHtml(displayAccommodation(m))}${m.totalRooms ? ` • ${Number(m.totalRooms)} Rooms` : ''}</span><br><a data-mh-details="1" href="details.html?id=${encodeURIComponent(m._id)}">View details & map</a></div>`;
       const marker = L.marker([lat, lng]).addTo(markersLayer).bindPopup(popup);
       markerById[String(m._id)] = { marker, lat, lng };
     });
@@ -167,6 +169,18 @@
       resultsMap.setView([entry.lat, entry.lng], 16, { animate: true });
       entry.marker.openPopup();
     }, 250);
+  }
+
+  function isLoggedIn() {
+    return Boolean(window.MHApi?.getUser());
+  }
+
+  function requireLoginPopup(msg, nextUrl) {
+    if (window.MHUI?.showLoginModal) {
+      window.MHUI.showLoginModal(msg, nextUrl || '');
+    } else {
+      window.location.href = 'login.html';
+    }
   }
 
   async function loadMesses() {
@@ -219,7 +233,7 @@
     el.querySelectorAll('button[data-page]').forEach(btn => {
       btn.addEventListener('click', () => {
         const p = Number(btn.getAttribute('data-page'));
-        if (p >= 1 && p <= state.totalPages) { state.page = p; loadMesses(); document.getElementById('explore')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+        if (p >= 1 && p <= state.totalPages) { state.page = p; loadMesses().then(() => { document.getElementById('messGrid')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }); }
       });
     });
   }
@@ -233,7 +247,7 @@
 
   function applyFilters() {
     state.page = 1;
-    loadMesses();
+    return loadMesses();
   }
 
   function runHeroSearch() {
@@ -243,8 +257,10 @@
       if (el) el.value = '';
     });
     document.querySelectorAll('#facilityFilters input[type="checkbox"]').forEach(c => c.checked = false);
-    applyFilters();
-    document.getElementById('explore')?.scrollIntoView({ behavior: 'smooth' });
+    applyFilters().then(() => {
+      const target = document.getElementById('messGrid') || document.getElementById('noResults');
+      target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
   }
 
   document.addEventListener('DOMContentLoaded', () => {
@@ -256,6 +272,14 @@
     });
 
     // Hero Search (mess name only, no dropdown, case-insensitive)
+    document.addEventListener('click', (e) => {
+      const a = e.target && e.target.closest ? e.target.closest('a[data-mh-details]') : null;
+      if (!a || isLoggedIn()) return;
+      e.preventDefault();
+      requireLoginPopup('Please login first to view mess details, photos, owner contact numbers and booking. You can browse the listings and Demo Mode freely.', a.getAttribute('href'));
+    });
+    window.addEventListener('mh-auth-change', () => { loadMesses(); });
+
     qs('heroSearchBtn')?.addEventListener('click', () => {
       runHeroSearch();
     });
@@ -280,7 +304,12 @@
       cb.addEventListener('change', applyFilters);
     });
 
-    qs('applyFiltersBtn')?.addEventListener('click', applyFilters);
+    qs('applyFiltersBtn')?.addEventListener('click', () => {
+      applyFilters().then(() => {
+        const target = document.getElementById('messGrid') || document.getElementById('noResults');
+        target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
     qs('clearFiltersBtn')?.addEventListener('click', clearAllFilters);
 
     initMap();

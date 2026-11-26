@@ -3,8 +3,10 @@ import { useEffect } from 'react'
 import Navbar from './components/Navbar'
 import AuthNavbar from './components/AuthNavbar'
 import Footer from './components/Footer'
+import LoginModal from './components/LoginModal'
 import HomePage from './pages/HomePage'
 import DetailsPage from './pages/DetailsPage'
+import DemoPage from './pages/DemoPage'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import StudentDashboard from './pages/StudentDashboard'
@@ -75,8 +77,24 @@ function DetailsLayout() {
           </div>
           <p>Find Your Perfect Mess</p>
         </div>
-        <div className="footer-bottom">© 2026 MessHunt • BCA Final Year Project</div>
+        <div className="footer-bottom">© 2026 MessHunt • Contact: <a className="inline-link" href="mailto:studentmesshunt@gmail.com">studentmesshunt@gmail.com</a></div>
       </footer>
+    </>
+  )
+}
+
+function DemoLayout() {
+  return (
+    <>
+      <Navbar
+        brandHref="/index.html"
+        navLinks={[
+          { href: '/index.html', label: 'Home' },
+          { href: '/index.html#explore', label: 'Real Listings' },
+        ]}
+      />
+      <DemoPage />
+      <Footer />
     </>
   )
 }
@@ -111,12 +129,16 @@ function RegisterLayout() {
 export default function App() {
   return (
     <BrowserRouter>
+      <LoginModal />
       <Routes>
         <Route path="/" element={<HomeLayout />} />
         <Route path="/index.html" element={<HomeLayout />} />
 
         <Route path="/details" element={<DetailsLayout />} />
         <Route path="/details.html" element={<DetailsLayout />} />
+
+        <Route path="/demo" element={<DemoLayout />} />
+        <Route path="/demo.html" element={<DemoLayout />} />
 
         <Route path="/login" element={<LoginLayout />} />
         <Route path="/login.html" element={<LoginLayout />} />

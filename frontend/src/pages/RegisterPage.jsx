@@ -40,7 +40,7 @@ export default function RegisterPage() {
       setAlert({ type: 'success', message: 'Registration successful. Redirecting...' })
       const nextRole = res.user.role
       setTimeout(() => {
-        navigate(nextRole === 'owner' ? '/owner-dashboard.html' : '/student-dashboard.html', { replace: true })
+        navigate(nextRole === 'admin' ? '/admin-dashboard.html' : nextRole === 'owner' ? '/owner-dashboard.html' : '/student-dashboard.html', { replace: true })
       }, 600)
     } catch (err) {
       setAlert({ type: 'error', message: err.message || 'Registration failed' })
@@ -70,7 +70,7 @@ export default function RegisterPage() {
             </div>
             <div>
               <label htmlFor="email">Email</label>
-              <input type="email" id="email" required placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+              <input type="email" id="email" required autoComplete="off" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
             </div>
             <div>
               <label htmlFor="phone">Phone</label>
@@ -82,11 +82,11 @@ export default function RegisterPage() {
           <div className="form-grid">
             <div>
               <label htmlFor="password">Password</label>
-              <input type="password" id="password" required minLength={6} placeholder="At least 6 characters" value={password} onChange={(e) => setPassword(e.target.value)} />
+              <input type="password" id="password" required autoComplete="new-password" minLength={6} placeholder="At least 6 characters" value={password} onChange={(e) => setPassword(e.target.value)} />
             </div>
             <div>
               <label htmlFor="confirmPassword">Confirm Password</label>
-              <input type="password" id="confirmPassword" required minLength={6} placeholder="Re-enter password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
+              <input type="password" id="confirmPassword" required autoComplete="new-password" minLength={6} placeholder="Re-enter password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
             </div>
           </div>
           <div className="form-actions">
