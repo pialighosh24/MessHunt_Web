@@ -49,6 +49,16 @@ const COLLEGE_LOCATIONS = {
     college: 'Vidyasagar University & Midnapore College',
     busStand: 'Vidyasagar University Gate Bus Stop',
     railwayStation: 'Midnapore Railway Station'
+  },
+  rnlkwc: {
+    label: "Near RNLKWC (Raja Narendra Lal Khan Women's College), Gope Palace, Midnapore - 721102, West Bengal",
+    area: 'Gope Palace (Near RNLKWC)',
+    city: 'Midnapore',
+    lat: 22.4277,
+    lng: 87.3046,
+    college: "Raja Narendra Lal Khan Women's College (RNLKWC)",
+    busStand: 'Gope Palace / RNLKWC Gate Bus Stop',
+    railwayStation: 'Midnapore Railway Station'
   }
 }
 
@@ -376,6 +386,13 @@ export default function DemoPage() {
             onClick={() => { setLiveCoords(null); setLiveAddress(''); setLocPreset('vu'); showToast('Switched map to Vidyasagar University / Midnapore College location', 'info') }}
           >
             🎓 Midnapore / V.U. College Location
+          </button>
+          <button
+            type="button"
+            className="btn btn-light"
+            onClick={() => { setLiveCoords(null); setLiveAddress(''); setLocPreset('rnlkwc'); showToast("Switched map to RNLKWC (Raja Narendra Lal Khan Women's College) location", 'info') }}
+          >
+            🎓 RNLKWC College Location
           </button>
           <a className="btn btn-primary" target="_blank" rel="noopener noreferrer" href={googleMapsUrl}>
             Open Exact Location in Google Maps
